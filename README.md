@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+SEO-friendly, fast landing page for Saral built with Next.js App Router and Tailwind v4.
 
 ## Getting Started
 
@@ -16,9 +16,19 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+You can start editing the page by modifying `src/app/page.js`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## AI Brief API (optional)
+
+Add a `.env.local` with `GOOGLE_API_KEY` to enable real responses; without it a deterministic mock is returned.
+
+```
+GOOGLE_API_KEY=your_key
+```
+
+Endpoint: `POST /api/ai-brief` with body `{ projectDescription: string }`.
 
 ## Learn More
 
