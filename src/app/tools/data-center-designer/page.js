@@ -1183,7 +1183,7 @@ function DataCenterAnalysisTool() {
 
       <div className="bg-white rounded-lg shadow-lg p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="p-4 rounded border">
-          <p className="text-sm text-gray-600">P(NPV > 0)</p>
+          <p className="text-sm text-gray-600">P(NPV {'>'} 0)</p>
           <p className="text-2xl font-bold">{simulationResults.pSuccess.toFixed(0)}%</p>
         </div>
         <div className="p-4 rounded border">
