@@ -1,5 +1,6 @@
 import { getInsightData, getInsightSlugs } from '@/lib/markdown';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 
 export async function generateStaticParams() {
   const slugs = await getInsightSlugs();
@@ -43,9 +44,9 @@ export default async function InsightPage({ params }) {
       {/* Header */}
               <header className="bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <a href="/insights" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+          <Link href="/insights" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
             ← Back to Insights
-          </a>
+          </Link>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             {insightData.title}
           </h1>
@@ -109,12 +110,12 @@ export default async function InsightPage({ params }) {
           <p className="text-lg mb-8 text-gray-300">
             Let's discuss how Saral can help you leverage AI for your business growth.
           </p>
-          <a
+          <Link
             href="/#contact"
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-none text-gray-900 bg-white hover:bg-gray-100 transition-colors duration-200"
           >
             Get in Touch
-          </a>
+          </Link>
         </div>
       </section>
     </div>

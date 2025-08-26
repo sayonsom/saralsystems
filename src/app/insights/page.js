@@ -102,12 +102,12 @@ export default async function InsightsPage() {
           <p className="text-lg mb-8 text-gray-300">
             Get the latest insights on AI and data center innovations delivered to your inbox.
           </p>
-          <a
+          <Link
             href="/#contact"
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-none text-gray-900 bg-white hover:bg-gray-100 transition-colors duration-200"
           >
             Subscribe to Updates
-          </a>
+          </Link>
         </div>
       </section>
     </div>
