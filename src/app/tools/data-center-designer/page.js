@@ -325,7 +325,7 @@ function DataCenterAnalysisTool() {
         bandwidthCost +
         marketingCost,
     };
-  }, [projectInputs, calculateDetailedCapex]);
+  }, [projectInputs]);
 
   const calculateRevenue = useCallback(() => {
     let baseRevenue = 0;
@@ -362,6 +362,36 @@ function DataCenterAnalysisTool() {
       total: baseRevenue + interconnectionRevenue + managedServicesRevenue,
     };
   }, [projectInputs]);
+
+  const generateCashFlows = useCallback((capex, opex, revenue) => {
+    const cashFlows = [-capex];
+    const rampMonths = projectInputs.rampPeriod;
+
+    for (let year = 1; year <= 10; year++) {
+      let yearlyRevenue = revenue;
+      let yearlyOpex = opex;
+
+      if (year <= Math.ceil(rampMonths / 12)) {
+        const rampProgress = Math.min(1, (year * 12) / rampMonths);
+        yearlyRevenue *= rampProgress;
+      }
+
+      yearlyRevenue *= Math.pow(1 + projectInputs.annualEscalation / 100, year - 1);
+      yearlyOpex *= Math.pow(1 + projectInputs.inflationRate / 100, year - 1);
+
+      const ebitda = yearlyRevenue - yearlyOpex;
+
+      const depreciation = calculateDepreciation(capex, year);
+      const taxableIncome = ebitda - depreciation;
+      const effectiveTaxRate = (taxConfig.federalRate + taxConfig.stateRate) / 100;
+      const taxes = Math.max(0, taxableIncome * effectiveTaxRate);
+
+      const fcf = ebitda - taxes;
+      cashFlows.push(fcf);
+    }
+
+    return cashFlows;
+  }, [projectInputs, calculateDepreciation, taxConfig]);
 
   const calculateDepreciation = useCallback((capex, year) => {
     const equipmentCapex = capex * 0.4;
@@ -401,41 +431,11 @@ function DataCenterAnalysisTool() {
     return depreciation;
   }, [taxConfig]);
 
-  const generateCashFlows = useCallback((capex, opex, revenue) => {
-    const cashFlows = [-capex];
-    const rampMonths = projectInputs.rampPeriod;
-
-    for (let year = 1; year <= 10; year++) {
-      let yearlyRevenue = revenue;
-      let yearlyOpex = opex;
-
-      if (year <= Math.ceil(rampMonths / 12)) {
-        const rampProgress = Math.min(1, (year * 12) / rampMonths);
-        yearlyRevenue *= rampProgress;
-      }
-
-      yearlyRevenue *= Math.pow(1 + projectInputs.annualEscalation / 100, year - 1);
-      yearlyOpex *= Math.pow(1 + projectInputs.inflationRate / 100, year - 1);
-
-      const ebitda = yearlyRevenue - yearlyOpex;
-
-      const depreciation = calculateDepreciation(capex, year);
-      const taxableIncome = ebitda - depreciation;
-      const effectiveTaxRate = (taxConfig.federalRate + taxConfig.stateRate) / 100;
-      const taxes = Math.max(0, taxableIncome * effectiveTaxRate);
-
-      const fcf = ebitda - taxes;
-      cashFlows.push(fcf);
-    }
-
-    return cashFlows;
-  }, [projectInputs, taxConfig, calculateDepreciation]);
-
-  const calculateNPV = useCallback((cashFlows, discountRate) => {
+  const calculateNPV = (cashFlows, discountRate) => {
     return cashFlows.reduce((npv, cf, year) => npv + cf / Math.pow(1 + discountRate, year), 0);
-  }, []);
+  };
 
-  const calculateIRR = useCallback((cashFlows) => {
+  const calculateIRR = (cashFlows) => {
     let rate = 0.1;
     const tolerance = 0.00001;
     const maxIterations = 100;
@@ -453,16 +453,16 @@ function DataCenterAnalysisTool() {
     }
 
     return rate * 100;
-  }, []);
+  };
 
-  const calculatePayback = useCallback((cashFlows) => {
+  const calculatePayback = (cashFlows) => {
     let cumulative = 0;
     for (let i = 0; i < cashFlows.length; i++) {
       cumulative += cashFlows[i];
       if (cumulative > 0) return i - (cumulative - cashFlows[i]) / cashFlows[i];
     }
     return cashFlows.length;
-  }, []);
+  };
 
   // Monte Carlo simulation for risk analysis
   const runMonteCarloSimulation = (iterations = 1000) => {
@@ -554,17 +554,7 @@ function DataCenterAnalysisTool() {
       bestCaseNPV: 0,
       probabilityOfSuccess: 0,
     }));
-  }, [
-    projectInputs,
-    taxConfig,
-    calculateDetailedCapex,
-    calculateDetailedOpex,
-    calculateRevenue,
-    generateCashFlows,
-    calculateNPV,
-    calculateIRR,
-    calculatePayback,
-  ]);
+  }, [projectInputs, taxConfig, calculateDetailedCapex, calculateDetailedOpex, calculateRevenue, generateCashFlows]);
 
   const ExecutiveSummary = () => (
     <div className="space-y-6">

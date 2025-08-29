@@ -11,7 +11,7 @@ const sen = Sen({
 export const metadata = {
   metadataBase: new URL("https://www.saral.energy"),
   title: {
-    default: "Saral – Simplifying India's Energy Transition",
+    default: "We minimize risks for Energy Transition",
     template: "%s | Saral",
   },
   description:

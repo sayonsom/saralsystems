@@ -3,7 +3,7 @@
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-import { Activity, Cog, Satellite, Server } from 'lucide-react';
+import { Activity, Cog, Satellite, Server, CircuitBoard } from 'lucide-react';
 
 export default function ToolsHomePage() {
   const { user } = useAuth();
@@ -14,6 +14,7 @@ export default function ToolsHomePage() {
     { title: 'Generate Distribution System Models', icon: Cog, href: '/tools/generate-distribution-models', color: 'bg-blue-100 text-blue-600' },
     { title: 'Satellite-based Resilience Monitoring', icon: Satellite, href: '/tools/satellite-resilience-monitoring', color: 'bg-green-100 text-green-600' },
     { title: 'Data Center Designer', icon: Server, href: '/tools/data-center-designer', color: 'bg-purple-100 text-purple-600' },
+    { title: 'GridLab-D Web IDE', icon: CircuitBoard, href: '/tools/gridlabd', color: 'bg-emerald-100 text-emerald-600' },
   ];
 
   return (

@@ -100,7 +100,7 @@ export default function ToolsLayout({ children }) {
         {/* Main */}
         <main className="flex-1 overflow-y-auto">
           {/* Top bar for mobile toggle */}
-          <div className="sticky top-0 z-10 h-14 flex items-center gap-3 bg-white/80 backdrop-blur border-b border-gray-200 px-4">
+          {/* <div className="sticky top-0 z-10 h-14 flex items-center gap-3 bg-white/80 backdrop-blur border-b border-gray-200 px-4">
             <button
               aria-label="Toggle sidebar"
               className="md:hidden p-2 rounded hover:bg-gray-100"
@@ -109,7 +109,7 @@ export default function ToolsLayout({ children }) {
               <Menu size={20} />
             </button>
             <h1 className="text-lg font-semibold">Tools</h1>
-          </div>
+          </div> */}
 
           {/* Content gating */}
           {loading ? (

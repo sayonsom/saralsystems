@@ -17,12 +17,12 @@ export default function Hero() {
       <div className="relative z-20 w-full text-center">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-gray-900">
-            Saral: Simplifying{" "}
-            <span className="text-orange-600">India&apos;s Energy Transition</span>
+            Saral: De-risking{" "}
+            <span className="text-orange-600">India&apos;s Energy Future</span>
           </h1>
           <p className="max-w-3xl mx-auto text-lg md:text-xl text-gray-700 mb-8">
-            We provide the simplified AI tools and expertise to accelerate
-            India&apos;s move to a sustainable energy future.
+            We build tools that help reduce risk and uncertainty in modernising and securing
+            India&apos;s energy systems.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
