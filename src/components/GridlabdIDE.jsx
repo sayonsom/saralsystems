@@ -73,6 +73,7 @@ object recorder {
     file meter_output.csv;
 }`;
 
+// ---------------- Icons ----------------
 function IconDoc({ className = "", fill = "currentColor" }) {
   return (
     <svg className={className} width="14" height="14" viewBox="0 0 16 16" fill={fill} aria-hidden>
@@ -113,6 +114,154 @@ function IconFormat({ className = "" }) {
       <path d="M5.433.451L.942 7.905a1 1 0 000 1.19l4.491 7.454A1 1 0 006.29 17h3.42a1 1 0 00.857-.549l4.491-7.454a1 1 0 000-1.19L10.567.451A1 1 0 009.71 0H6.29a1 1 0 00-.857.451z" />
     </svg>
   );
+}
+
+// Explorer icons
+function IconChevron({ expanded }) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 8 8" style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform .15s" }} aria-hidden>
+      <path d="M2 1l4 3-4 3z" fill={COLORS.textMuted} />
+    </svg>
+  );
+}
+function IconFolder({ open = false }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <path d={open ? "M2 4v8h12V5H9L7 3H2v1z" : "M2 3v10h12V5H9L7 3H2z"} fill="#f0883e" />
+    </svg>
+  );
+}
+function IconCsv() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <path d="M14 4.5V14a2 2 0 01-2 2H4a2 2 0 01-2-2V2a2 2 0 012-2h5.5L14 4.5z" fill={COLORS.success} />
+      <path d="M4 6h8M4 8h8M4 10h8M4 12h8" stroke={COLORS.bg} strokeWidth="0.5" />
+    </svg>
+  );
+}
+function IconJson() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <path d="M14 4.5V14a2 2 0 01-2 2H4a2 2 0 01-2-2V2a2 2 0 012-2h5.5L14 4.5z" fill={COLORS.warning} />
+      <path d="M6 6h1M9 6h1M5 8h6M6 10h1M9 10h1" stroke={COLORS.bg} strokeWidth="0.8" />
+    </svg>
+  );
+}
+function IconTxt() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <path d="M14 4.5V14a2 2 0 01-2 2H4a2 2 0 01-2-2V2a2 2 0 012-2h5.5L14 4.5z" fill="#6e7681" />
+      <path d="M4 6h8M4 8h6M4 10h8M4 12h5" stroke={COLORS.bg} strokeWidth="0.5" />
+    </svg>
+  );
+}
+
+// ---------------- Utils ----------------
+const isTextExt = (name) => /\.(glm|csv|json|txt|md|xml)$/i.test(name);
+const fileExt = (name) => (name.match(/\.[^.]+$/)?.[0].toLowerCase() || "");
+const baseName = (p) => (p === "/" ? "/" : p.split("/").filter(Boolean).slice(-1)[0] || "");
+const parentPathOf = (p) => {
+  if (!p || p === "/") return "/";
+  const parts = p.split("/").filter(Boolean);
+  parts.pop();
+  return "/" + parts.join("/");
+};
+
+function pickIconByName(name) {
+  const ext = fileExt(name);
+  if (ext === ".csv") return <IconCsv />;
+  if (ext === ".json") return <IconJson />;
+  if (ext === ".glm") return <IconDoc fill={COLORS.accent} />;
+  if (ext === ".md" || ext === ".txt" || ext === ".xml") return <IconTxt />;
+  return <IconDoc fill="#6e7681" />;
+}
+
+// Tree helpers working on a { '/': {type:'folder', children:{ ... }} } structure
+function getNode(root, path) {
+  if (!path || path === "/") return root["/"];
+  const parts = path.split("/").filter(Boolean);
+  let node = root["/"];
+  for (const seg of parts) {
+    node = node?.children?.[seg];
+    if (!node) return undefined;
+  }
+  return node;
+}
+function getChildren(root, path) {
+  const n = getNode(root, path);
+  return n?.children || {};
+}
+function cloneDeep(obj) {
+  if (typeof structuredClone === "function") return structuredClone(obj);
+  return JSON.parse(JSON.stringify(obj));
+}
+function ensureFolder(root, folderPath) {
+  const next = cloneDeep(root);
+  const parts = folderPath.split("/").filter(Boolean);
+  let node = next["/"];
+  for (const seg of parts) {
+    node.children[seg] = node.children[seg] || { type: "folder", children: {} };
+    node = node.children[seg];
+  }
+  return next;
+}
+function addChild(root, folderPath, name, childNode) {
+  const next = ensureFolder(root, folderPath);
+  const parts = folderPath.split("/").filter(Boolean);
+  let node = next["/"];
+  for (const seg of parts) node = node.children[seg];
+  node.children[name] = childNode;
+  return next;
+}
+function setFileContent(root, filePath, content) {
+  const next = cloneDeep(root);
+  const folder = parentPathOf(filePath);
+  const name = baseName(filePath);
+  const parts = folder.split("/").filter(Boolean);
+  let node = next["/"];
+  for (const seg of parts) node = node.children[seg];
+  if (node?.children?.[name] && node.children[name].type === "file") {
+    node.children[name].content = content;
+    node.children[name].size = content?.length || 0;
+  }
+  return next;
+}
+function deleteAt(root, targetPath) {
+  if (targetPath === "/") return root;
+  const folder = parentPathOf(targetPath);
+  const name = baseName(targetPath);
+  const next = cloneDeep(root);
+  const parts = folder.split("/").filter(Boolean);
+  let node = next["/"];
+  for (const seg of parts) node = node.children[seg];
+  if (node?.children?.[name]) delete node.children[name];
+  return next;
+}
+function renameAt(root, targetPath, newName) {
+  if (!newName || /\//.test(newName)) return root;
+  const folder = parentPathOf(targetPath);
+  const name = baseName(targetPath);
+  const next = cloneDeep(root);
+  const parts = folder.split("/").filter(Boolean);
+  let node = next["/"];
+  for (const seg of parts) node = node.children[seg];
+  if (node?.children?.[name]) {
+    node.children[newName] = node.children[name];
+    delete node.children[name];
+  }
+  return next;
+}
+function countFilesAndSize(node) {
+  if (!node) return { files: 0, folders: 0, bytes: 0 };
+  if (node.type === "file") return { files: 1, folders: 0, bytes: node.size || 0 };
+  let res = { files: 0, folders: 1, bytes: 0 };
+  for (const key of Object.keys(node.children || {})) {
+    const r = countFilesAndSize(node.children[key]);
+    res.files += r.files;
+    res.folders += r.folders;
+    res.bytes += r.bytes;
+  }
+  return res;
 }
 
 function StatusBadge({ status }) {
@@ -173,7 +322,7 @@ function Header({ onNew, onSave, onRun, status }) {
           style={{ background: COLORS.secondary, color: COLORS.text, border: `1px solid ${COLORS.border}` }}
         >
           <IconNew />
-          New
+          New File
         </button>
         <button
           type="button"
@@ -260,6 +409,117 @@ function ErrorPanel({ message }) {
   );
 }
 
+// ---------------- File Explorer ----------------
+function FileExplorer({
+  projectName,
+  tree,
+  expanded,
+  onToggle,
+  selectedPath,
+  onSelect,
+  onCreateFile,
+  onCreateFolder,
+  onUpload,
+}) {
+  const inputRef = useRef(null);
+
+  const counts = useMemo(() => countFilesAndSize(tree["/"]), [tree]);
+  const totalKB = (counts.bytes / 1024).toFixed(1);
+
+  const sortedEntries = (children) => {
+    const entries = Object.entries(children || {});
+    return entries.sort((a, b) => {
+      const [an, av] = a;
+      const [bn, bv] = b;
+      if (av.type !== bv.type) return av.type === "folder" ? -1 : 1;
+      return an.localeCompare(bn);
+    });
+  };
+
+  const renderNode = (path, name, node, level) => {
+    const fullPath = path === "/" ? `/${name}` : `${path}/${name}`;
+    if (node.type === "folder") {
+      const isOpen = expanded.has(fullPath);
+      return (
+        <div key={fullPath}>
+          <div
+            className="flex items-center gap-1 px-3 py-1.5 cursor-pointer hover:bg-[#21262d]"
+            style={{ color: COLORS.text }}
+            onClick={() => onToggle(fullPath)}
+          >
+            <span className="mr-1" style={{ marginLeft: level * 14 }}>
+              <IconChevron expanded={isOpen} />
+            </span>
+            <span className="mr-2"><IconFolder open={isOpen} /></span>
+            <span className="text-sm" style={{ color: COLORS.text }}>{name}</span>
+          </div>
+          {isOpen && (
+            <div>
+              {sortedEntries(node.children).map(([childName, childNode]) =>
+                renderNode(fullPath, childName, childNode, level + 1)
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+    const isSelected = selectedPath === fullPath;
+    return (
+      <div
+        key={fullPath}
+        className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer ${isSelected ? "bg-[#1f6feb]" : "hover:bg-[#21262d]"}`}
+        style={{ color: isSelected ? "#fff" : COLORS.text }}
+        onClick={() => onSelect(fullPath)}
+      >
+        <span style={{ marginLeft: level * 14, visibility: "hidden" }}>
+          <IconChevron expanded={false} />
+        </span>
+        <span className="mr-2">{pickIconByName(name)}</span>
+        <span className="text-sm truncate">{name}</span>
+      </div>
+    );
+  };
+
+  const selectedFolder = useMemo(() => {
+    if (!selectedPath || selectedPath === "/") return "/";
+    const n = getNode(tree, selectedPath);
+    return n?.type === "folder" ? selectedPath : parentPathOf(selectedPath);
+  }, [selectedPath, tree]);
+
+  return (
+    <div className="shrink-0 flex flex-col" style={{ width: 260, background: COLORS.bgMuted, borderRight: `1px solid ${COLORS.border}`, height: "calc(100vh - 60px)" }}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-3" style={{ background: COLORS.bg, borderBottom: `1px solid ${COLORS.border}` }}>
+        <div className="text-sm font-semibold" style={{ color: COLORS.text }}>{projectName}</div>
+        <div className="flex items-center gap-1">
+          <button title="New File" onClick={() => onCreateFile(selectedFolder)} className="rounded-md p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
+            <IconNew />
+          </button>
+          <button title="New Folder" onClick={() => onCreateFolder(selectedFolder)} className="rounded-md p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2H2v11h12V4H9L7 2z"/><path d="M11 8v3M9.5 9.5h3"/></svg>
+          </button>
+          <button title="Upload" onClick={() => inputRef.current?.click()} className="rounded-md p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.646 1.146a.5.5 0 01.708 0l3 3a.5.5 0 01-.708.708L8.5 2.707V12a.5.5 0 01-1 0V2.707L5.354 4.854a.5.5 0 01-.708-.708l3-3z"/><path d="M1 13.5h14a1 1 0 001-1V11a.5.5 0 00-1 0v1.5H1V11a.5.5 0 00-1 0v1.5a1 1 0 001 1z"/></svg>
+          </button>
+          <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => e.target.files && onUpload(Array.from(e.target.files), selectedFolder)} />
+        </div>
+      </div>
+
+      {/* Tree */}
+      <div className="flex-1 overflow-y-auto" style={{ paddingTop: 4 }}>
+        {/* Root */}
+        {renderNode("", "/", tree["/"], 0)}
+      </div>
+
+      {/* Footer */}
+      <div className="px-3 py-2 text-[11px] flex items-center justify-between" style={{ borderTop: `1px solid ${COLORS.border}`, color: COLORS.textMuted, background: COLORS.bg }}>
+        <span>{counts.files} files, {Math.max(counts.folders - 1, 0)} folders</span>
+        <span>{totalKB} KB</span>
+      </div>
+    </div>
+  );
+}
+
 export default function GridlabdIDE() {
   const [status, setStatus] = useState("ready");
   const [activeTab, setActiveTab] = useState("console");
@@ -269,11 +529,48 @@ export default function GridlabdIDE() {
   const [editorPct, setEditorPct] = useState(50);
   const [hasVizData, setHasVizData] = useState(false);
 
+  // Project state (in-memory)
+  const [projectName] = useState("IEEE 13 Node");
+  const [fileTree, setFileTree] = useState(() => ({
+    "/": {
+      type: "folder",
+      children: {
+        "main.glm": { type: "file", size: INITIAL_GLM.length, content: INITIAL_GLM },
+        config: {
+          type: "folder",
+          children: {
+            "line_config.glm": { type: "file", size: 0, content: "// line config..." },
+            "transformer.glm": { type: "file", size: 0, content: "// transformer config..." },
+          },
+        },
+        data: {
+          type: "folder",
+          children: {
+            "load_profile.csv": { type: "file", size: 24, content: "timestamp,load\n00:00,1.2" },
+            "weather.csv": { type: "file", size: 24, content: "timestamp,temp\n00:00,28" },
+            "solar_profile.json": { type: "file", size: 2, content: "{}" },
+          },
+        },
+        output: { type: "folder", children: {} },
+        "README.md": { type: "file", size: 14, content: "# Project files" },
+      },
+    },
+  }));
+  const [expanded, setExpanded] = useState(() => new Set(["/", "/config", "/data"]));
+  const [activeFilePath, setActiveFilePath] = useState("/main.glm");
+
   const { lines, append, setLines } = useConsole();
 
   const containerRef = useRef(null);
   const isResizingRef = useRef(false);
   const canvasRef = useRef(null);
+
+  // Derived: is editor dirty vs tree
+  const isDirty = useMemo(() => {
+    const n = getNode(fileTree, activeFilePath);
+    if (!n || n.type !== "file") return false;
+    return (n.content || "") !== editorValue;
+  }, [fileTree, activeFilePath, editorValue]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -291,27 +588,114 @@ export default function GridlabdIDE() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const handleNew = useCallback(() => {
-    if (window.confirm("Create a new file? Unsaved changes will be lost.")) {
-      setEditorValue("");
-      append("New file created", "info");
+  // Explorer actions
+  const toggleFolder = useCallback((path) => {
+    setExpanded((prev) => {
+      const n = new Set(prev);
+      if (n.has(path)) n.delete(path);
+      else n.add(path);
+      return n;
+    });
+  }, []);
+
+  const openPath = useCallback((path) => {
+    const node = getNode(fileTree, path);
+    if (!node) return;
+    if (node.type === "file") {
+      setActiveFilePath(path);
+      setEditorValue(node.content || "");
+    } else {
+      toggleFolder(path);
     }
-  }, [append]);
+  }, [fileTree, toggleFolder]);
+
+  const createNewFile = useCallback((folderPath = "/") => {
+    const base = "untitled";
+    let name = `${base}.glm`;
+    const children = getChildren(fileTree, folderPath);
+    let idx = 1;
+    while (children[name]) {
+      name = `${base}-${idx++}.glm`;
+    }
+    const newPath = folderPath === "/" ? `/${name}` : `${folderPath}/${name}`;
+    setFileTree((prev) => addChild(prev, folderPath, name, { type: "file", size: 0, content: "" }));
+    setExpanded((s) => new Set([...s, folderPath]));
+    setActiveFilePath(newPath);
+    setEditorValue("");
+    append(`New file created: ${newPath}`, "info");
+  }, [fileTree, append]);
+
+  const createNewFolder = useCallback((folderPath = "/") => {
+    const base = "folder";
+    let name = base;
+    const children = getChildren(fileTree, folderPath);
+    let idx = 1;
+    while (children[name]) name = `${base}-${idx++}`;
+    setFileTree((prev) => addChild(prev, folderPath, name, { type: "folder", children: {} }));
+    setExpanded((s) => new Set([...s, folderPath, folderPath === "/" ? `/${name}` : `${folderPath}/${name}`]));
+    append(`New folder created: ${folderPath === "/" ? "" : folderPath}/${name}`.replace("//", "/"), "info");
+  }, [fileTree, append]);
+
+  const uploadFiles = useCallback(async (files, targetFolder = "/") => {
+    if (!files || files.length === 0) return;
+    let nextTree = fileTree;
+    for (const f of files) {
+      let content = "";
+      try {
+        if (isTextExt(f.name)) content = await f.text();
+      } catch {}
+      const node = { type: "file", size: content ? content.length : f.size || 0, content };
+      nextTree = addChild(nextTree, targetFolder, f.name, node);
+    }
+    setFileTree(nextTree);
+    setExpanded((s) => new Set([...s, targetFolder]));
+    append(`${files.length} file(s) uploaded to ${targetFolder}`, "success");
+  }, [fileTree, append]);
+
+  const renamePath = useCallback((path) => {
+    const newName = window.prompt("Enter new name", baseName(path));
+    if (!newName) return;
+    setFileTree((prev) => renameAt(prev, path, newName));
+    const parent = parentPathOf(path);
+    const np = parent === "/" ? `/${newName}` : `${parent}/${newName}`;
+    if (activeFilePath === path) setActiveFilePath(np);
+  }, [activeFilePath]);
+
+  const deletePath = useCallback((path) => {
+    if (!window.confirm(`Delete ${path}?`)) return;
+    setFileTree((prev) => deleteAt(prev, path));
+    if (activeFilePath === path) {
+      setActiveFilePath("/main.glm");
+      const node = getNode(fileTree, "/main.glm");
+      setEditorValue(node?.content || "");
+    }
+  }, [activeFilePath, fileTree]);
+
+  const handleNew = useCallback(() => {
+    // Create a new file in the selected folder or root
+    const node = getNode(fileTree, activeFilePath);
+    const targetFolder = node?.type === "folder" ? activeFilePath : parentPathOf(activeFilePath);
+    createNewFile(targetFolder || "/");
+  }, [fileTree, activeFilePath, createNewFile]);
 
   const handleSave = useCallback(() => {
     try {
+      // Update in-memory project
+      setFileTree((prev) => setFileContent(prev, activeFilePath, editorValue));
+
+      // Download the file
       const blob = new Blob([editorValue], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "model.glm";
+      a.download = baseName(activeFilePath) || "model.glm";
       a.click();
       URL.revokeObjectURL(url);
       append("File saved successfully", "success");
     } catch (e) {
       append("Failed to save file", "error");
     }
-  }, [editorValue, append]);
+  }, [editorValue, append, activeFilePath]);
 
   const formatCode = useCallback(() => {
     // Placeholder formatting – could integrate prettier-plugin if needed
@@ -335,6 +719,8 @@ export default function GridlabdIDE() {
 
     append("Starting GridLab-D simulation...", "info");
     try {
+      append("Bundling project files...", "info");
+      await delay(500);
       append("Parsing GLM model...", "info");
       await delay(500);
       append("Initializing power flow solver...", "info");
@@ -386,8 +772,7 @@ export default function GridlabdIDE() {
   }, []);
 
   // Visualization drawing when tab becomes active or data changes
-  useEffect(() => {
-    if (activeTab !== "visualization" || !hasVizData) return;
+  const drawViz = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -451,7 +836,11 @@ export default function GridlabdIDE() {
     ctx.font = "11px sans-serif";
     ctx.fillText("Voltage (V)", 10, 15);
     ctx.fillText("Time (hours)", width / 2 - 30, height - 10);
-  }, [activeTab, hasVizData]);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "visualization" && hasVizData) drawViz();
+  }, [activeTab, hasVizData, drawViz]);
 
   const EditorHeader = (
     <div className="flex items-center justify-between px-4 py-2" style={{ background: COLORS.bgMuted, borderBottom: `1px solid ${COLORS.border}` }}>
@@ -460,7 +849,8 @@ export default function GridlabdIDE() {
           className="flex items-center gap-2 text-xs px-3 py-1 rounded-t-md"
           style={{ background: COLORS.bg, color: COLORS.text, border: `1px solid ${COLORS.border}`, borderBottom: "none" }}
         >
-          <IconDoc /> model.glm
+          <IconDoc /> {baseName(activeFilePath) || "model.glm"}
+          {isDirty && <span className="ml-1 text-[10px]" style={{ color: COLORS.warning }}>*</span>}
         </div>
       </div>
       <div className="flex items-center gap-2">
@@ -472,6 +862,25 @@ export default function GridlabdIDE() {
           style={{ background: COLORS.secondary, color: COLORS.text, border: `1px solid ${COLORS.border}`, padding: "6px 10px" }}
         >
           <IconFormat />
+        </button>
+        {/* Quick actions for the selected item */}
+        <button
+          type="button"
+          onClick={() => renamePath(activeFilePath)}
+          className="inline-flex items-center justify-center rounded-md"
+          style={{ background: COLORS.secondary, color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, padding: "6px 10px" }}
+          title="Rename"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M12.146.854a.5.5 0 01.708 0l2.292 2.292a.5.5 0 010 .708l-9 9a.5.5 0 01-.353.146H3.5a.5.5 0 01-.5-.5v-2.293a.5.5 0 01.146-.353l9-9z"/></svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => deletePath(activeFilePath)}
+          className="inline-flex items-center justify-center rounded-md"
+          style={{ background: COLORS.secondary, color: COLORS.error, border: `1px solid ${COLORS.border}`, padding: "6px 10px" }}
+          title="Delete"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 1a.5.5 0 00-.5.5V2H2a.5.5 0 000 1h12a.5.5 0 000-1h-4v-.5a.5.5 0 00-.5-.5h-3zM3 4h10l-.9 10.1a1 1 0 01-1 .9H4.9a1 1 0 01-1-.9L3 4z"/></svg>
         </button>
       </div>
     </div>
@@ -507,6 +916,19 @@ export default function GridlabdIDE() {
       <Header onNew={handleNew} onSave={handleSave} onRun={runSimulation} status={status} />
 
       <div ref={containerRef} className="flex" style={{ height: "calc(100vh - 60px)" }}>
+        {/* New File Explorer Panel */}
+        <FileExplorer
+          projectName={projectName}
+          tree={fileTree}
+          expanded={expanded}
+          onToggle={toggleFolder}
+          selectedPath={activeFilePath}
+          onSelect={openPath}
+          onCreateFile={createNewFile}
+          onCreateFolder={createNewFolder}
+          onUpload={uploadFiles}
+        />
+
         {/* Editor Panel */}
         <div
           className="flex flex-col"
