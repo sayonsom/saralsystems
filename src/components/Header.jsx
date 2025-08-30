@@ -5,14 +5,19 @@ import { Menu, X, User, LogOut, Settings } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginModal from "./LoginModal";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navLinks = ["Services", "AI Brief", "Use Cases", "Insights", "Tools", "Contact"];
   const { user, logout } = useAuth();
   const userMenuRef = useRef(null);
+  const desktopSearchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
+  const router = useRouter();
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -27,6 +32,35 @@ export default function Header() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const key = e.key?.toLowerCase();
+      const isInput = ["input", "textarea"].includes((e.target?.tagName || "").toLowerCase()) || e.target?.isContentEditable;
+      if (!isInput && (e.metaKey || e.ctrlKey) && key === "k") {
+        e.preventDefault();
+        if (window.innerWidth < 768) {
+          setIsOpen(true);
+          // Focus mobile search after menu opens
+          setTimeout(() => mobileSearchRef.current?.focus(), 0);
+        } else {
+          desktopSearchRef.current?.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [setIsOpen]);
+
+  const submitSearch = (e, qOverride) => {
+    e?.preventDefault?.();
+    const q = (qOverride ?? searchQuery).trim();
+    if (q) {
+      router.push(`/search?q=${encodeURIComponent(q)}`);
+      setIsOpen(false);
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-200">
@@ -53,6 +87,19 @@ export default function Header() {
                   {link}
                 </a>
               ))}
+
+              {/* Global Search (desktop) */}
+              <form onSubmit={submitSearch} className="relative">
+                <input
+                  ref={desktopSearchRef}
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search… (⌘K)"
+                  aria-label="Search the site"
+                  className="w-56 lg:w-72 border border-gray-300 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </form>
 
               {user ? (
                 <div className="relative" ref={userMenuRef}>
@@ -107,7 +154,19 @@ export default function Header() {
       </div>
       {isOpen && (
         <div className="md:hidden bg-white/95 backdrop-blur-lg pb-4 border-t border-gray-200">
-          <nav className="flex flex-col items-center space-y-4">
+          {/* Global Search (mobile) */}
+          <form onSubmit={submitSearch} className="px-4 pt-3">
+            <input
+              ref={mobileSearchRef}
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search… (Ctrl/Cmd+K)"
+              aria-label="Search the site"
+              className="w-full border border-gray-300 bg-white px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+          </form>
+          <nav className="flex flex-col items-center space-y-4 mt-4">
             {navLinks.map((link) => (
               <a
                 key={link}
@@ -123,7 +182,7 @@ export default function Header() {
               </a>
             ))}
             {user ? (
-              <div className="text-center">
+              <div className="text-center w-full px-4">
                 <div className="flex items-center justify-center space-x-2 text-gray-700 mb-4">
                   <User size={20} />
                   <span>{user.email?.split('@')[0] || 'User'}</span>
