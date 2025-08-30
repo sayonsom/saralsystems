@@ -8,14 +8,14 @@ function buildResultsWithHighlights(items, query) {
     includeScore: true,
     includeMatches: true,
     shouldSort: true,
-    threshold: 0.35,
+    threshold: 0.2, // stricter matching
     ignoreLocation: true,
     minMatchCharLength: 2,
     keys: [
-      { name: 'title', weight: 0.5 },
-      { name: 'excerpt', weight: 0.3 },
+      { name: 'title', weight: 0.55 },
+      { name: 'excerpt', weight: 0.25 },
       { name: 'tags', weight: 0.1 },
-      { name: 'content', weight: 0.6 },
+      { name: 'content', weight: 0.65 },
     ],
   });
   const searchRes = fuse.search(query);
@@ -83,6 +83,7 @@ export async function GET(request) {
   try {
     const url = new URL(request.url);
     const q = (url.searchParams.get('q') || url.searchParams.get('query') || '').trim();
+    const limit = parseInt(url.searchParams.get('limit') || '0', 10);
     const query = q;
 
     if (!query) {
@@ -115,7 +116,33 @@ export async function GET(request) {
       })),
     ];
 
-    const results = buildResultsWithHighlights(items, query);
+    // Build results with fuzzy scoring and highlights
+    let results = buildResultsWithHighlights(items, query);
+
+    // Additional AND-term filter to focus on all query terms
+    const tokens = query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (tokens.length > 1) {
+      results = results.filter((r) => {
+        const haystack = [r.title, r.excerpt, r.content, (r.tags || []).join(' ')].join(' ').toLowerCase();
+        return tokens.every((t) => haystack.includes(t));
+      });
+    }
+
+    // Sort by combined score and recency
+    results.sort((a, b) => {
+      const scoreA = a.score ?? 1;
+      const scoreB = b.score ?? 1;
+      if (scoreA !== scoreB) return scoreA - scoreB; // lower score is better
+      return new Date(b.date || 0) - new Date(a.date || 0);
+    });
+
+    if (limit > 0) {
+      results = results.slice(0, limit);
+    }
 
     return NextResponse.json({ query: q, count: results.length, results });
   } catch (err) {

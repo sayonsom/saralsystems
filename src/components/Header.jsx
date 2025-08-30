@@ -6,12 +6,18 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginModal from "./LoginModal";
 import { useRouter } from "next/navigation";
+import SearchModal from "./SearchModal";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [mobileSuggestions, setMobileSuggestions] = useState([]);
+  const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
   const navLinks = ["Services", "AI Brief", "Use Cases", "Insights", "Tools", "Contact"];
   const { user, logout } = useAuth();
   const userMenuRef = useRef(null);
@@ -33,32 +39,77 @@ export default function Header() {
     };
   }, []);
 
-  // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
+  // Debounced suggestions when 3+ chars
+  useEffect(() => {
+    const q = searchQuery.trim();
+    let active = true;
+    if (q.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=5`);
+        const data = await res.json();
+        if (!active) return;
+        setSuggestions(data.results || []);
+        setShowSuggestions(true);
+      } catch (e) {
+        if (!active) return;
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 200);
+    return () => { active = false; clearTimeout(t); };
+  }, [searchQuery]);
+
+  // Mobile suggestions (3+ chars)
+  useEffect(() => {
+    const q = searchQuery.trim();
+    let active = true;
+    if (q.length < 3 || !isOpen) {
+      setMobileSuggestions([]);
+      setShowMobileSuggestions(false);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=5`);
+        const data = await res.json();
+        if (!active) return;
+        setMobileSuggestions(data.results || []);
+        setShowMobileSuggestions(true);
+      } catch (e) {
+        if (!active) return;
+        setMobileSuggestions([]);
+        setShowMobileSuggestions(false);
+      }
+    }, 250);
+    return () => { active = false; clearTimeout(t); };
+  }, [searchQuery, isOpen]);
+
+  // Keyboard shortcut: Cmd+K / Ctrl+K opens modal
   useEffect(() => {
     const onKeyDown = (e) => {
       const key = e.key?.toLowerCase();
       const isInput = ["input", "textarea"].includes((e.target?.tagName || "").toLowerCase()) || e.target?.isContentEditable;
       if (!isInput && (e.metaKey || e.ctrlKey) && key === "k") {
         e.preventDefault();
-        if (window.innerWidth < 768) {
-          setIsOpen(true);
-          // Focus mobile search after menu opens
-          setTimeout(() => mobileSearchRef.current?.focus(), 0);
-        } else {
-          desktopSearchRef.current?.focus();
-        }
+        setShowSearchModal(true);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [setIsOpen]);
+  }, []);
 
   const submitSearch = (e, qOverride) => {
     e?.preventDefault?.();
     const q = (qOverride ?? searchQuery).trim();
     if (q) {
-      router.push(`/search?q=${encodeURIComponent(q)}`);
-      setIsOpen(false);
+      setShowSearchModal(true);
+      setShowSuggestions(false);
+      setShowMobileSuggestions(false);
     }
   };
 
@@ -89,17 +140,40 @@ export default function Header() {
               ))}
 
               {/* Global Search (desktop) */}
-              <form onSubmit={submitSearch} className="relative">
-                <input
-                  ref={desktopSearchRef}
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search… (⌘K)"
-                  aria-label="Search the site"
-                  className="w-56 lg:w-72 border border-gray-300 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-              </form>
+              <div className="relative">
+                <form onSubmit={submitSearch}>
+                  <input
+                    ref={desktopSearchRef}
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setShowSuggestions(suggestions.length > 0)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                    onClick={() => setShowSearchModal(true)}
+                    placeholder="Search… (⌘K)"
+                    aria-label="Search the site"
+                    className="w-56 lg:w-72 border border-gray-300 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </form>
+
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute mt-1 left-0 right-0 bg-white border border-gray-200 shadow-lg z-50">
+                    <ul className="py-2">
+                      {suggestions.map((s, idx) => (
+                        <li key={idx} className="px-3 py-2 hover:bg-gray-50">
+                          <a href={s.href} className="block">
+                            <div className="text-[11px] uppercase text-gray-500">{s.type}</div>
+                            <div className="text-sm font-medium" dangerouslySetInnerHTML={{ __html: s.highlightedTitle || escapeHtml(s.title) }} />
+                          </a>
+                        </li>
+                      ))}
+                      <li className="px-3 py-2 border-t text-sm text-gray-600">
+                        Press Enter to view more results…
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               {user ? (
                 <div className="relative" ref={userMenuRef}>
@@ -161,11 +235,30 @@ export default function Header() {
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowMobileSuggestions(mobileSuggestions.length > 0)}
+              onBlur={() => setTimeout(() => setShowMobileSuggestions(false), 150)}
               placeholder="Search… (Ctrl/Cmd+K)"
               aria-label="Search the site"
               className="w-full border border-gray-300 bg-white px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </form>
+          {showMobileSuggestions && mobileSuggestions.length > 0 && (
+            <div className="px-4">
+              <div className="mt-2 bg-white border border-gray-200 shadow">
+                <ul className="py-2">
+                  {mobileSuggestions.map((s, idx) => (
+                    <li key={idx} className="px-3 py-2 hover:bg-gray-50">
+                      <a href={s.href} className="block" onClick={() => setIsOpen(false)}>
+                        <div className="text-[11px] uppercase text-gray-500">{s.type}</div>
+                        <div className="text-sm font-medium" dangerouslySetInnerHTML={{ __html: s.highlightedTitle || escapeHtml(s.title) }} />
+                      </a>
+                    </li>
+                  ))}
+                  <li className="px-3 py-2 border-t text-sm text-gray-600">Press Enter to open full search…</li>
+                </ul>
+              </div>
+            </div>
+          )}
           <nav className="flex flex-col items-center space-y-4 mt-4">
             {navLinks.map((link) => (
               <a
@@ -231,7 +324,19 @@ export default function Header() {
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
       />
+
+      {/* Search Modal */}
+      <SearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} initialQuery={searchQuery} />
     </header>
   );
+}
+
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
