@@ -5,6 +5,25 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { Activity, Cog, Satellite, Server, CircuitBoard } from 'lucide-react';
 
+export const metadata = {
+  title: 'Tools | Saral',
+  description: 'AI-powered tools for power systems and infrastructure: GridLAB-D IDE, distribution model generation, smart meter load disaggregation, satellite-based resilience monitoring, and data center designer.',
+  alternates: { canonical: '/tools' },
+  openGraph: {
+    title: 'Tools | Saral',
+    description: 'Explore Saral tools for grid simulation, smart meter analytics, model generation, satellite resilience, and data center design.',
+    url: 'https://www.saralsystems.co/tools',
+    images: [{ url: '/vercel.svg', width: 1200, height: 630, alt: 'Saral Tools' }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tools | Saral',
+    description: 'AI-powered tools for power systems, analytics, and planning.',
+    images: ['/vercel.svg'],
+  },
+};
+
 export default function ToolsHomePage() {
   const { user } = useAuth();
   const username = user?.displayName || user?.email?.split('@')[0] || 'User';

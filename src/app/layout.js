@@ -71,6 +71,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
   return (
     <html lang="en">
       <body
@@ -103,6 +104,7 @@ export default function RootLayout({ children }) {
         <Suspense fallback={null}>
           <RouteTracker />
         </Suspense>
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
     </html>
   );

@@ -2,37 +2,26 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-} from 'recharts';
-import {
-  Calculator,
-  TrendingUp,
-  DollarSign,
-  Building,
-  Shield,
-  AlertTriangle,
-  Sun,
-  Server,
-  CreditCard,
-  Settings,
-  BarChart3,
-  Layers,
-  Clock,
-  Percent,
-} from 'lucide-react';
+
+export const metadata = {
+  title: 'Data Center Designer',
+  description: 'Plan, size, and analyze data centers: power, cooling, PUE/WUE, costs, IRR/NPV. Compare scenarios and assess risks.',
+  keywords: ['data center design','PUE','WUE','capex opex','IRR','NPV','scenario analysis','risk analysis'],
+  alternates: { canonical: '/tools/data-center-designer' },
+  openGraph: {
+    title: 'Data Center Designer | Saral',
+    description: 'Size and cost data centers, simulate energy and financials, and compare scenarios.',
+    url: 'https://www.saralsystems.co/tools/data-center-designer',
+    images: [{ url: '/vercel.svg', width: 1200, height: 630, alt: 'Data Center Designer' }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Data Center Designer | Saral',
+    description: 'Design and analyze data centers with energy and finance metrics.',
+    images: ['/vercel.svg'],
+  },
+};
 
 function DataCenterAnalysisTool() {
   const [activeTab, setActiveTab] = useState('executive');
