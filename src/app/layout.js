@@ -12,7 +12,7 @@ const sen = Sen({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://www.saral.energy"),
+  metadataBase: new URL("https://www.saralsystems.co"),
   title: {
     default: "We minimize risks for Energy Transition",
     template: "%s | Saral",
@@ -84,7 +84,7 @@ export default function RootLayout({ children }) {
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "Saral",
-              url: "https://www.saral.energy",
+              url: "https://www.saralsystems.co",
               sameAs: [],
               logo: "https://www.saralsystems.co/logo.png",
               potentialAction: {
