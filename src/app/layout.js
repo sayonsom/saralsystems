@@ -1,6 +1,9 @@
 import { Sen } from "next/font/google";
 import "./globals.css";
 import { AuthContextProvider } from "@/contexts/AuthContext";
+import CookieConsent from "@/components/CookieConsent";
+import RouteTracker from "@/components/RouteTracker";
+import { Suspense } from "react";
 
 const sen = Sen({
   variable: "--font-sen",
@@ -15,7 +18,7 @@ export const metadata = {
     template: "%s | Saral",
   },
   description:
-    "AI-powered services for data center prospecting, PPA cost analysis, workflow automation, and workforce upskilling in India.",
+    "AI-powered services for data center prospecting, energy stack, smart metering, renewable penetration, market policy design, PPA cost analysis, workflow automation, and energy workforce upskilling in India.",
   keywords: [
     "energy transition",
     "India",
@@ -28,7 +31,7 @@ export const metadata = {
     title: "Saral – Simplifying India's Energy Transition",
     description:
       "AI-powered services for data center prospecting, PPA cost analysis, workflow automation, and workforce upskilling in India.",
-    url: "https://www.saral.energy/",
+    url: "https://www.saralsystems.co/",
     siteName: "Saral",
     images: [
       {
@@ -54,6 +57,17 @@ export const metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      maxSnippet: -1,
+      maxImagePreview: "large",
+      maxVideoPreview: -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -72,13 +86,23 @@ export default function RootLayout({ children }) {
               name: "Saral",
               url: "https://www.saral.energy",
               sameAs: [],
-              logo: "/vercel.svg",
+              logo: "https://www.saralsystems.co/logo.png",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://www.saralsystems.co/search?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
             }),
           }}
         />
         <AuthContextProvider>
           {children}
         </AuthContextProvider>
+        {/* Cookie consent banner and simple route tracking cookies */}
+        <CookieConsent />
+        <Suspense fallback={null}>
+          <RouteTracker />
+        </Suspense>
       </body>
     </html>
   );

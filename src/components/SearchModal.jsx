@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { getConsentAccepted, getJsonCookie, setJsonCookie } from '@/lib/cookies';
 
 export default function SearchModal({ isOpen, onClose, initialQuery = '' }) {
   const [query, setQuery] = useState(initialQuery);
@@ -10,16 +11,28 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }) {
   const inputRef = useRef(null);
   const containerRef = useRef(null);
 
+  // Restore last query and history when opening
+  useEffect(() => {
+    if (!isOpen) return;
+    const consent = getConsentAccepted();
+    if (consent) {
+      const prefs = getJsonCookie('search_prefs', { last: '', history: [] });
+      const init = initialQuery || prefs.last || '';
+      setQuery(init);
+    } else {
+      setQuery(initialQuery);
+    }
+  }, [isOpen, initialQuery]);
+
   useEffect(() => {
     if (isOpen) {
-      setQuery(initialQuery);
       setTimeout(() => inputRef.current?.focus(), 0);
       // prevent background scroll
       const original = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       return () => { document.body.style.overflow = original; };
     }
-  }, [isOpen, initialQuery]);
+  }, [isOpen]);
 
   // Close on ESC or outside click
   useEffect(() => {
@@ -59,6 +72,18 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }) {
         const data = await res.json();
         if (!active) return;
         setResults(data.results || []);
+
+        // Save search prefs if consented
+        if (getConsentAccepted()) {
+          const existing = getJsonCookie('search_prefs', { last: '', history: [] });
+          const history = existing.history || [];
+          if (history[0] !== q) {
+            const newHistory = [q, ...history.filter((h) => h !== q)].slice(0, 10);
+            setJsonCookie('search_prefs', { last: q, history: newHistory }, { days: 90 });
+          } else if (existing.last !== q) {
+            setJsonCookie('search_prefs', { last: q, history }, { days: 90 });
+          }
+        }
       } catch (e) {
         if (!active) return;
         setError('Search failed');

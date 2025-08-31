@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import Image from 'next/image';
 import LoginModal from '@/components/LoginModal';
 import { ChevronLeft, ChevronRight, Menu, Folder, User, Key, LifeBuoy, BookOpen, Grid } from 'lucide-react';
 
-export default function ToolsLayout({ children }) {
+function ToolsLayoutContent({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { user, logout, loading } = useAuth();
@@ -137,5 +137,13 @@ export default function ToolsLayout({ children }) {
       {/* Auth modal */}
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
+  );
+}
+
+export default function ToolsLayout({ children }) {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <ToolsLayoutContent>{children}</ToolsLayoutContent>
+    </Suspense>
   );
 }

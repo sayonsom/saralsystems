@@ -4,6 +4,8 @@ import Link from 'next/link';
 export const metadata = {
   title: 'Insights | Saral - AI & Data Center Expertise',
   description: 'Explore our latest insights on AI, data centers, and digital transformation in India.',
+  alternates: { canonical: '/insights' },
+  robots: { index: true, follow: true },
 };
 
 export default async function InsightsPage() {

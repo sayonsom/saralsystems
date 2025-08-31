@@ -9,6 +9,8 @@ import NewsletterForm from '@/components/NewsletterForm';
 export const metadata = {
   title: 'Gridleaf Blog - Insights on AI, Energy, and Technology',
   description: 'Explore articles on artificial intelligence, energy systems, economics, productivity, and technical writing from industry experts.',
+  alternates: { canonical: '/blog' },
+  robots: { index: true, follow: true },
 };
 
 const categories = [
@@ -96,14 +98,14 @@ async function BlogPage({ searchParams }) {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-12 flex justify-center gap-2">
+          <div className="mt-12 flex justify-center gap-2" aria-label="Pagination Navigation">
             {page > 1 && (
               <Button
                 variant="outline"
                 size="sm"
                 asChild
               >
-                <a href={`/blog?category=${selectedCategory}&page=${page - 1}`}>
+                <a href={`/blog?category=${selectedCategory}&page=${page - 1}`} rel="prev">
                   Previous
                 </a>
               </Button>
@@ -117,7 +119,7 @@ async function BlogPage({ searchParams }) {
                   size="sm"
                   asChild
                 >
-                  <a href={`/blog?category=${selectedCategory}&page=${pageNum}`}>
+                  <a href={`/blog?category=${selectedCategory}&page=${pageNum}`} aria-current={pageNum === page ? 'page' : undefined}>
                     {pageNum}
                   </a>
                 </Button>
@@ -130,7 +132,7 @@ async function BlogPage({ searchParams }) {
                 size="sm"
                 asChild
               >
-                <a href={`/blog?category=${selectedCategory}&page=${page + 1}`}>
+                <a href={`/blog?category=${selectedCategory}&page=${page + 1}`} rel="next">
                   Next
                 </a>
               </Button>

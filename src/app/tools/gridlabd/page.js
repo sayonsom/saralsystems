@@ -11,7 +11,7 @@ export const metadata = {
     title: "GridLab-D Web IDE | Saral",
     description:
       "Interactive IDE to author and run GridLab-D models with console, files, and plots.",
-    url: "https://www.saral.energy/tools/gridlabd",
+    url: "https://www.saralsystems.co/tools/gridlabd",
     images: [
       {
         url: "/vercel.svg",

@@ -6,6 +6,9 @@ import { getPost } from '@/lib/contentful';
 import NewsletterForm from '@/components/NewsletterForm';
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
 import { BLOCKS, MARKS, INLINES } from '@contentful/rich-text-types';
+import ArticleMeterGate from '@/components/ArticleMeterGate';
+
+const BASE = 'https://www.saral.energy';
 
 // Generate dynamic metadata for SEO
 export async function generateMetadata({ params }) {
@@ -15,6 +18,7 @@ export async function generateMetadata({ params }) {
     return {
       title: 'Post Not Found | Gridleaf Blog',
       description: 'The requested blog post could not be found.',
+      alternates: { canonical: `${BASE}/blog` },
     };
   }
 
@@ -24,21 +28,30 @@ export async function generateMetadata({ params }) {
     return {
       title: 'Post Not Found | Gridleaf Blog',
       description: 'The requested blog post could not be found.',
+      alternates: { canonical: `${BASE}/blog` },
     };
   }
+
+  const imageUrl = post.coverImage
+    ? `https:${post.coverImage.fields.file.url}`
+    : (post.featuredImage || `${BASE}/logo.png`);
+
+  const url = `${BASE}/blog/${post.slug}`;
 
   return {
     title: `${post.title} | Gridleaf Blog`,
     description: post.excerpt,
+    alternates: { canonical: url },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: 'article',
+      url,
       publishedTime: post.date,
       authors: ['Sayonsom Chanda'],
-      images: (post.coverImage || post.featuredImage) ? [
+      images: imageUrl ? [
         {
-          url: post.coverImage ? `https:${post.coverImage.fields.file.url}` : post.featuredImage,
+          url: imageUrl,
           width: 1200,
           height: 630,
           alt: post.coverImage?.fields?.title || post.title,
@@ -49,7 +62,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
-      images: post.coverImage ? [`https:${post.coverImage.fields.file.url}`] : (post.featuredImage ? [post.featuredImage] : []),
+      images: imageUrl ? [imageUrl] : [],
     },
   };
 }
@@ -171,15 +184,15 @@ function generateStructuredData(post) {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Gridleaf',
+      name: 'Saral',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://gridleaf.org/logo.png'
+        url: `${BASE}/logo.png`
       }
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://gridleaf.org/blog/${post.slug}`
+      '@id': `${BASE}/blog/${post.slug}`
     }
   };
 }
@@ -234,58 +247,61 @@ export default async function BlogPost({ params }) {
             __html: JSON.stringify(generateStructuredData(post))
           }}
         />
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-24">
-          <header className="mb-12">
-            <div className="text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
-              {post.category}
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 font-[family-name:var(--font-sen)]">{post.title}</h1>
-            <p className="text-xl text-[#6b6b6b] dark:text-gray-400 mb-8 font-[family-name:var(--font-sen)]">
-              {post.excerpt}
-            </p>
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">Sayonsom Chanda</span>
-              <span className="mx-2">·</span>
-              <time dateTime={post.date}>
-                {new Date(post.date).toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </time>
-              <span className="mx-2">·</span>
-              <span>{post.readingTime} min read</span>
-            </div>
-          </header>
-
-          {(post.coverImage || post.featuredImage) && (
-            <figure className="mb-12">
-              <div className="relative aspect-[16/9] overflow-hidden rounded-none">
-                <Image
-                  src={post.coverImage ? `https:${post.coverImage.fields.file.url}` : post.featuredImage}
-                  alt={post.coverImage?.fields?.title || post.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1280px) 100vw, 1280px" />
+        <ArticleMeterGate slug={`blog:${slug}`}>
+          <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-24">
+            <link rel="canonical" href={`${BASE}/blog/${post.slug}`} />
+            <header className="mb-12">
+              <div className="text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
+                {post.category}
               </div>
-              {post.coverImage?.fields?.description && (
-                <figcaption className="text-sm text-[#6b6b6b] dark:text-gray-600 mt-2 text-center font-[family-name:var(--font-pt-serif)]">
-                  {post.coverImage?.fields?.description}
-                </figcaption>
-              )}
-            </figure>
-          )}
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 font-[family-name:var(--font-sen)]">{post.title}</h1>
+              <p className="text-xl text-[#6b6b6b] dark:text-gray-400 mb-8 font-[family-name:var(--font-sen)]">
+                {post.excerpt}
+              </p>
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Sayonsom Chanda</span>
+                <span className="mx-2">·</span>
+                <time dateTime={post.date} itemProp="datePublished">
+                  {new Date(post.date).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </time>
+                <span className="mx-2">·</span>
+                <span>{post.readingTime} min read</span>
+              </div>
+            </header>
 
-          <div className="prose prose-lg dark:prose-invert max-w-none font-[family-name:var(--font-pt-serif)] !prose-p:text-[#242424] dark:!prose-p:text-gray-300 prose-p:text-lg prose-p:leading-[1.8] !prose-strong:text-[#242424] dark:!prose-strong:text-gray-100 !prose-strong:font-bold !prose-headings:text-[#242424] dark:!prose-headings:text-gray-100 !prose-li:text-[#242424] dark:!prose-li:text-gray-300 !prose-td:text-[#242424] dark:!prose-td:text-gray-300 !prose-blockquote:text-[#242424] dark:!prose-blockquote:text-gray-300">
-            {manualTable}
-            {documentToReactComponents(post.content, renderOptions)}
-          </div>
+            {(post.coverImage || post.featuredImage) && (
+              <figure className="mb-12">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-none">
+                  <Image
+                    src={post.coverImage ? `https:${post.coverImage.fields.file.url}` : post.featuredImage}
+                    alt={post.coverImage?.fields?.title || post.title}
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="(max-width: 1280px) 100vw, 1280px" />
+                </div>
+                {post.coverImage?.fields?.description && (
+                  <figcaption className="text-sm text-[#6b6b6b] dark:text-gray-600 mt-2 text-center font-[family-name:var(--font-pt-serif)]">
+                    {post.coverImage?.fields?.description}
+                  </figcaption>
+                )}
+              </figure>
+            )}
 
-          <footer className="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800">
-            <NewsletterForm />
-          </footer>
-        </article>
+            <div className="prose prose-lg dark:prose-invert max-w-none font-[family-name:var(--font-pt-serif)] !prose-p:text-[#242424] dark:!prose-p:text-gray-300 prose-p:text-lg prose-p:leading-[1.8] !prose-strong:text-[#242424] dark:!prose-strong:text-gray-100 !prose-strong:font-bold !prose-headings:text-[#242424] dark:!prose-headings:text-gray-100 !prose-li:text-[#242424] dark:!prose-li:text-gray-300 !prose-td:text-[#242424] dark:!prose-td:text-gray-300 !prose-blockquote:text-[#242424] dark:!prose-blockquote:text-gray-300">
+              {manualTable}
+              {documentToReactComponents(post.content, renderOptions)}
+            </div>
+
+            <footer className="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800">
+              <NewsletterForm />
+            </footer>
+          </article>
+        </ArticleMeterGate>
       </>
     );
   } catch (error) {

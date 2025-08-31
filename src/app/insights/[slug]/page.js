@@ -1,6 +1,9 @@
 import { getInsightData, getInsightSlugs } from '@/lib/markdown';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import ArticleMeterGate from '@/components/ArticleMeterGate';
+
+const BASE = 'https://www.saral.energy';
 
 export async function generateStaticParams() {
   const slugs = await getInsightSlugs();
@@ -12,20 +15,29 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   try {
     const insightData = await getInsightData(params.slug);
+    const url = `${BASE}/insights/${params.slug}`;
     return {
       title: `${insightData.title} | Saral Insights`,
       description: insightData.excerpt,
+      alternates: { canonical: url },
       openGraph: {
         title: insightData.title,
         description: insightData.excerpt,
         type: 'article',
+        url,
         publishedTime: insightData.date,
         authors: [insightData.author],
+      },
+      twitter: {
+        card: 'summary',
+        title: insightData.title,
+        description: insightData.excerpt,
       },
     };
   } catch (error) {
     return {
       title: 'Insight Not Found | Saral',
+      alternates: { canonical: `${BASE}/insights` },
     };
   }
 }
@@ -39,8 +51,22 @@ export default async function InsightPage({ params }) {
     notFound();
   }
 
+  const canonical = `${BASE}/insights/${params.slug}`;
+  const structured = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: insightData.title,
+    description: insightData.excerpt,
+    datePublished: insightData.date,
+    author: { '@type': 'Person', name: insightData.author || 'Saral Team' },
+    publisher: { '@type': 'Organization', name: 'Saral' },
+    mainEntityOfPage: canonical,
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured) }} />
+      <link rel="canonical" href={canonical} />
       {/* Header */}
       <header className="bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -53,7 +79,7 @@ export default async function InsightPage({ params }) {
           <div className="flex items-center text-sm text-gray-600 space-x-4">
             <span>By {insightData.author}</span>
             <span>•</span>
-            <time dateTime={insightData.date}>
+            <time dateTime={insightData.date} itemProp="datePublished">
               {new Date(insightData.date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -84,23 +110,25 @@ export default async function InsightPage({ params }) {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <article 
-          className="prose prose-lg max-w-none
-            prose-headings:font-bold prose-headings:text-gray-900
-            prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
-            prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
-            prose-h3:text-xl prose-h3:mt-4 prose-h3:mb-2
-            prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
-            prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-gray-900 prose-strong:font-semibold
-            prose-ul:my-4 prose-ol:my-4
-            prose-li:text-gray-700 prose-li:mb-2
-            prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-4
-            prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none prose-code:text-sm
-            prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-pre:rounded-none prose-pre:p-4
-            prose-img:rounded-none prose-img:my-8"
-          dangerouslySetInnerHTML={{ __html: insightData.contentHtml }}
-        />
+        <ArticleMeterGate slug={`insight:${params.slug}`}>
+          <article 
+            className="prose prose-lg max-w-none
+              prose-headings:font-bold prose-headings:text-gray-900
+              prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
+              prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
+              prose-h3:text-xl prose-h3:mt-4 prose-h3:mb-2
+              prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
+              prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-gray-900 prose-strong:font-semibold
+              prose-ul:my-4 prose-ol:my-4
+              prose-li:text-gray-700 prose-li:mb-2
+              prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-4
+              prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none prose-code:text-sm
+              prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-pre:rounded-none prose-pre:p-4
+              prose-img:rounded-none prose-img:my-8"
+            dangerouslySetInnerHTML={{ __html: insightData.contentHtml }}
+          />
+        </ArticleMeterGate>
       </main>
 
       {/* Footer CTA */}
