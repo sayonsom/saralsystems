@@ -4,13 +4,14 @@ import { getAllInsights } from '@/lib/markdown';
 import Fuse from 'fuse.js';
 
 function buildResultsWithHighlights(items, query) {
+  const minMatch = query && query.length >= 5 ? 4 : query && query.length >= 3 ? 3 : 2;
   const fuse = new Fuse(items, {
     includeScore: true,
     includeMatches: true,
     shouldSort: true,
     threshold: 0.2, // stricter matching
     ignoreLocation: true,
-    minMatchCharLength: 2,
+    minMatchCharLength: minMatch,
     keys: [
       { name: 'title', weight: 0.55 },
       { name: 'excerpt', weight: 0.25 },
@@ -119,17 +120,37 @@ export async function GET(request) {
     // Build results with fuzzy scoring and highlights
     let results = buildResultsWithHighlights(items, query);
 
-    // Additional AND-term filter to focus on all query terms
+    // Tokenize the query
     const tokens = query
       .toLowerCase()
       .split(/\s+/)
       .filter(Boolean);
 
-    if (tokens.length > 1) {
-      results = results.filter((r) => {
-        const haystack = [r.title, r.excerpt, r.content, (r.tags || []).join(' ')].join(' ').toLowerCase();
-        return tokens.every((t) => haystack.includes(t));
-      });
+    // Helper utilities for word-boundary filtering
+    const escapeRegExp = (s = '') => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const buildWordRegex = (tok) => {
+      const esc = escapeRegExp(tok);
+      // For longer tokens, allow common morphological suffixes while anchoring to word boundary
+      return tok.length >= 4
+        ? new RegExp(`\\b${esc}[a-z]{0,4}\\b`, 'i')
+        : new RegExp(`\\b${esc}\\b`, 'i');
+    };
+
+    if (tokens.length > 0) {
+      const regexes = tokens.map(buildWordRegex);
+      const haystack = (r) => [r.title, r.excerpt, r.content, (r.tags || []).join(' ')].join(' ');
+
+      let filtered = results.filter((r) => regexes.every((rx) => rx.test(haystack(r))));
+
+      // If the strict filter removes everything, gently relax for single long-token queries
+      if (filtered.length === 0 && tokens.length === 1 && query.length >= 4) {
+        const lcQuery = query.toLowerCase();
+        filtered = results.filter((r) => haystack(r).toLowerCase().includes(lcQuery));
+      }
+
+      if (filtered.length > 0) {
+        results = filtered;
+      }
     }
 
     // Sort by combined score and recency
