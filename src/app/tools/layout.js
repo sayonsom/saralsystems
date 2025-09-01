@@ -111,26 +111,8 @@ function ToolsLayoutContent({ children }) {
             <h1 className="text-lg font-semibold">Tools</h1>
           </div> */}
 
-          {/* Content gating */}
-          {loading ? (
-            <div className="min-h-[60vh] flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-600 mx-auto mb-3" />
-                <p className="text-gray-600">Loading...</p>
-              </div>
-            </div>
-          ) : user ? (
-            <>{children}</>
-          ) : (
-            <div className="max-w-2xl mx-auto px-4 py-12">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-3">Please sign in to access Saral Tools</h2>
-              <p className="text-gray-600 mb-6">Create an account or sign in to explore Smart Meter analytics, distribution model generation, resilience monitoring, and more.</p>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setShowLoginModal(true)} className="px-5 py-2.5 bg-orange-600 text-white rounded-md hover:bg-orange-700">Sign Up</button>
-                <button onClick={() => setShowLoginModal(true)} className="px-5 py-2.5 border border-gray-300 rounded-md hover:bg-gray-50">Sign In</button>
-              </div>
-            </div>
-          )}
+          {/* Always render page content; gated sections handle auth themselves */}
+          {children}
         </main>
       </div>
 

@@ -299,7 +299,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function Header({ onNew, onSave, onRun, status }) {
+function Header({ onNew, onSave, onRun, status, title }) {
   return (
     <div
       className="w-full flex items-center justify-between"
@@ -310,7 +310,7 @@ function Header({ onNew, onSave, onRun, status }) {
           <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
         </svg>
         <span className="text-base font-semibold" style={{ color: COLORS.accent }}>
-          GridLab-D Web IDE
+          {title || "GridLab-D Web IDE"}
         </span>
       </div>
       <div className="flex items-center gap-2 px-5">
@@ -520,7 +520,7 @@ function FileExplorer({
   );
 }
 
-export default function GridlabdIDE() {
+export default function GridlabdIDE({ projectName = "Untitled Project" }) {
   const [status, setStatus] = useState("ready");
   const [activeTab, setActiveTab] = useState("console");
   const [editorValue, setEditorValue] = useState(INITIAL_GLM);
@@ -530,7 +530,6 @@ export default function GridlabdIDE() {
   const [hasVizData, setHasVizData] = useState(false);
 
   // Project state (in-memory)
-  const [projectName] = useState("IEEE 13 Node");
   const [fileTree, setFileTree] = useState(() => ({
     "/": {
       type: "folder",
@@ -913,7 +912,7 @@ export default function GridlabdIDE() {
   return (
     <div className="min-h-screen w-full overflow-hidden" style={{ background: COLORS.bg, color: COLORS.text }}>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }`}</style>
-      <Header onNew={handleNew} onSave={handleSave} onRun={runSimulation} status={status} />
+      <Header onNew={handleNew} onSave={handleSave} onRun={runSimulation} status={status} title={`GridLab-D Web IDE · ${projectName}`} />
 
       <div ref={containerRef} className="flex" style={{ height: "calc(100vh - 60px)" }}>
         {/* New File Explorer Panel */}

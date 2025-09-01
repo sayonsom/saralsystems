@@ -1,0 +1,81 @@
+"use client";
+
+import React, { useMemo } from "react";
+
+function StatusBadge({ status, lastModified }) {
+  const map = {
+    running: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Running" },
+    success: { bg: "bg-green-100", text: "text-green-800", label: "Success" },
+    failed: { bg: "bg-red-100", text: "text-red-800", label: "Failed" },
+  };
+  const cfg = map[status] || map.success;
+  const lm = lastModified ? new Date(lastModified).toLocaleString() : "";
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${cfg.bg} ${cfg.text}`}>{cfg.label}</span>
+      {lm && <span className="text-gray-500 text-sm">{lm}</span>}
+    </div>
+  );
+}
+
+export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete, search }) {
+  const filtered = useMemo(() => {
+    const q = (search || "").toLowerCase();
+    return (projects || []).filter((p) => p.name.toLowerCase().includes(q));
+  }, [projects, search]);
+
+  if (!filtered.length) {
+    return (
+      <div className="text-center py-10 text-gray-500">
+        No projects matched your search.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 px-6 pb-6 overflow-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-gray-200">
+            <th className="text-left py-3 px-4"><input type="checkbox" className="rounded border-gray-300" /></th>
+            <th className="text-left py-3 px-4 font-medium text-gray-900">Project</th>
+            <th className="text-left py-3 px-4 font-medium text-gray-900">Owner</th>
+            <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
+            <th className="text-right py-3 px-4 font-medium text-gray-900">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((p) => (
+            <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
+              <td className="py-3 px-4"><input type="checkbox" className="rounded border-gray-300" /></td>
+              <td className="py-3 px-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-400">📄</span>
+                  <div>
+                    <button onClick={() => onOpen(p)} className="font-medium text-gray-900 hover:text-green-600">
+                      {p.name}
+                    </button>
+                    {p.shared && (
+                      <div className="text-xs text-gray-500 mt-1">Shared with {p.sharedWith}</div>
+                    )}
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-4 text-gray-700">{p.owner === 'You' ? 'You' : 'You'}</td>
+              <td className="py-3 px-4"><StatusBadge status={p.status} lastModified={p.lastModified} /></td>
+              <td className="py-3 px-4">
+                <div className="flex items-center justify-end gap-2">
+                  <button onClick={() => onDuplicate(p)} className="p-2 text-gray-400 hover:text-gray-600" title="Duplicate">⎘</button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600" title="Download">⬇️</button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600" title="Archive">🗂️</button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600" title="Share">🔗</button>
+                  <button onClick={() => onDelete(p)} className="p-2 text-gray-400 hover:text-red-600" title="Delete">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

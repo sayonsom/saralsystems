@@ -1,12 +1,13 @@
 "use client";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
-import GridlabdIDE from "@/components/GridlabdIDE";
+import ProjectsDashboard from "@/components/gridlabd/ProjectsDashboard";
 
 export default function ProtectedGridlabdPage() {
   return (
     <ProtectedRoute>
-      <GridlabdIDE />
+      {/* Show projects dashboard (list or empty state). From there, open IDE per project. */}
+      <ProjectsDashboard />
     </ProtectedRoute>
   );
 }

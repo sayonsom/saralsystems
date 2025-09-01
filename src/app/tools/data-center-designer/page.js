@@ -2,26 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-
-export const metadata = {
-  title: 'Data Center Designer',
-  description: 'Plan, size, and analyze data centers: power, cooling, PUE/WUE, costs, IRR/NPV. Compare scenarios and assess risks.',
-  keywords: ['data center design','PUE','WUE','capex opex','IRR','NPV','scenario analysis','risk analysis'],
-  alternates: { canonical: '/tools/data-center-designer' },
-  openGraph: {
-    title: 'Data Center Designer | Saral',
-    description: 'Size and cost data centers, simulate energy and financials, and compare scenarios.',
-    url: 'https://www.saralsystems.co/tools/data-center-designer',
-    images: [{ url: '/vercel.svg', width: 1200, height: 630, alt: 'Data Center Designer' }],
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Data Center Designer | Saral',
-    description: 'Design and analyze data centers with energy and finance metrics.',
-    images: ['/vercel.svg'],
-  },
-};
+import { TrendingUp, Percent, Clock, BarChart3, Settings, Building, Calculator, DollarSign, CreditCard, AlertTriangle, Sun, Shield, Layers, Server } from 'lucide-react';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, LineChart, CartesianGrid, XAxis, YAxis, Legend, Line, BarChart, Bar } from 'recharts';
+import AuthShowPublic from '@/components/AuthShowPublic';
 
 function DataCenterAnalysisTool() {
   const [activeTab, setActiveTab] = useState('executive');
@@ -1370,6 +1353,61 @@ function DataCenterAnalysisTool() {
     { id: 'scenarios', label: 'Scenario Planning', icon: <Layers className="w-4 h-4" /> },
   ];
 
+  // Public marketing/SEO sections above the gate
+  function DataCenterPublicSections() {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <header>
+          <h1 className="text-3xl font-bold mb-3">Data Center Designer</h1>
+          <p className="text-gray-700 mb-6">Plan, size, and analyze data centers—power, cooling, PUE/WUE, costs, IRR/NPV. Compare scenarios and assess risks.</p>
+        </header>
+        <section className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-3">Overview</h2>
+          <p className="text-gray-700">Quickly size facilities, estimate capex/opex, and evaluate pricing and utilization with scenario comparisons and risk analysis.</p>
+          <ul className="list-disc list-inside text-gray-700 mt-3 space-y-1">
+            <li>Sizing and energy modeling (PUE/WUE)</li>
+            <li>Financial modeling: IRR, NPV, payback</li>
+            <li>Scenario and sensitivity analysis</li>
+          </ul>
+        </section>
+        <section className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-3">How it works</h2>
+          <ol className="list-decimal list-inside text-gray-700 space-y-2">
+            <li>Define project and market assumptions.</li>
+            <li>Simulate performance and financial outcomes.</li>
+            <li>Compare scenarios and generate a summary report.</li>
+          </ol>
+        </section>
+        <section className="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold mb-3">FAQ</h2>
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium">Which geographies are supported?</h3>
+              <p className="text-gray-700">US and India presets with configurable parameters for other regions.</p>
+            </div>
+            <div>
+              <h3 className="font-medium">Can I export results?</h3>
+              <p className="text-gray-700">Yes, export summaries and scenario inputs/outputs.</p>
+            </div>
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [
+                  { "@type": "Question", name: "Which geographies are supported?", acceptedAnswer: { "@type": "Answer", text: "US and India presets with configurable parameters." } },
+                  { "@type": "Question", name: "Can I export results?", acceptedAnswer: { "@type": "Answer", text: "Yes, export summaries and scenario inputs/outputs." } },
+                ],
+              }),
+            }}
+          />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
@@ -1383,6 +1421,7 @@ function DataCenterAnalysisTool() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
+        <DataCenterPublicSections />
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
             <button
@@ -1396,6 +1435,7 @@ function DataCenterAnalysisTool() {
               {tab.label}
             </button>
           ))}
+
         </div>
 
         <div className="transition-all">
@@ -1415,10 +1455,18 @@ function DataCenterAnalysisTool() {
   );
 }
 
-export default function DataCenterDesigner() {
+export default function PageWrapper() {
   return (
-    <ProtectedRoute>
-      <DataCenterAnalysisTool />
-    </ProtectedRoute>
+    <>
+      {/* Show public preview only when logged out */}
+      <AuthShowPublic>
+        {/* You may have an intro or overview here; if not, nothing renders for public. */}
+      </AuthShowPublic>
+
+      {/* Gated interactive tool */}
+      <ProtectedRoute>
+        <DataCenterAnalysisTool />
+      </ProtectedRoute>
+    </>
   );
 }

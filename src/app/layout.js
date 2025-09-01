@@ -4,6 +4,7 @@ import { AuthContextProvider } from "@/contexts/AuthContext";
 import CookieConsent from "@/components/CookieConsent";
 import RouteTracker from "@/components/RouteTracker";
 import { Suspense } from "react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const sen = Sen({
   variable: "--font-sen",
@@ -35,7 +36,7 @@ export const metadata = {
     siteName: "Saral",
     images: [
       {
-        url: "/vercel.svg",
+        url: "/og.webp",
         width: 1200,
         height: 630,
         alt: "Saral",
