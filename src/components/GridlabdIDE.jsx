@@ -21,13 +21,12 @@ const COLORS = {
   secondaryHover: "#30363d",
 };
 
-const INITIAL_GLM = `// Enter your GridLab-D model here...
+const INITIAL_GLM = `// Sample Distribution System Feeder
 
-// Example IEEE 13 Node Test Feeder
 clock {
     timezone EST+5EDT;
-    starttime '2023-01-01 00:00:00';
-    stoptime '2023-01-01 23:59:59';
+    starttime '2024-01-01 00:00:00';
+    stoptime '2024-01-01 23:59:59';
 }
 
 module powerflow {
@@ -41,6 +40,16 @@ object overhead_line_conductor {
     name conductor_1;
     resistance 0.185900;
     geometric_mean_radius 0.031300;
+}
+
+object line_spacing {
+    name line_spacing_1;
+    distance_AB 2.5;
+    distance_BC 4.5;
+    distance_AC 7.0;
+    distance_AN 5.656854;
+    distance_BN 4.272002;
+    distance_CN 5.0;
 }
 
 object line_configuration {
@@ -58,6 +67,31 @@ object node {
     voltage_A 2400+0j;
     voltage_B -1200-2078j;
     voltage_C -1200+2078j;
+    nominal_voltage 2400;
+}
+
+object overhead_line {
+    name line_1_2;
+    phases ABCN;
+    from node_1;
+    to node_2;
+    length 2000;
+    configuration line_config_1;
+}
+
+object node {
+    name node_2;
+    phases ABCN;
+    nominal_voltage 2400;
+}
+
+object load {
+    name load_1;
+    parent node_2;
+    phases ABCN;
+    constant_power_A 100000+75000j;
+    constant_power_B 120000+90000j;
+    constant_power_C 120000+90000j;
     nominal_voltage 2400;
 }
 
@@ -264,6 +298,16 @@ function countFilesAndSize(node) {
     res.bytes += r.bytes;
   }
   return res;
+}
+
+// Map various backend status strings to a small set we use in the UI
+function normalizeSimStatus(status) {
+  const v = String(status || "").toLowerCase();
+  if (["complete", "completed", "success", "succeeded", "done", "finished"].includes(v)) return "completed";
+  if (["running", "in_progress", "in-progress", "processing", "started", "queue", "queued", "pending"].includes(v)) return "running";
+  if (["cancelled", "canceled", "aborted", "stopped", "timeout", "timed_out"].includes(v)) return "cancelled";
+  if (["failed", "error", "errored", "failure"].includes(v)) return "error";
+  return v || "running";
 }
 
 function StatusBadge({ status }) {
@@ -781,12 +825,36 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
       append("Zipping project files...", "info");
       const zip = new JSZip();
       const children = fileTree?.["/"]?.children || {};
-      for (const [name, node] of Object.entries(children)) {
+
+      // Recursively add files/folders to zip
+      const addToZip = (z, node, path) => {
+        if (!node) return;
         if (node.type === "file") {
-          zip.file(name, node.content || "");
+          z.file(path, node.content || "");
+          return;
         }
+        if (node.type === "folder") {
+          const folderZip = z.folder(path);
+          for (const [name, child] of Object.entries(node.children || {})) {
+            addToZip(folderZip || z, child, path ? `${path}/${name}` : name);
+          }
+        }
+      };
+
+      for (const [name, node] of Object.entries(children)) {
+        addToZip(zip, node, name);
       }
+
       const blob = await zip.generateAsync({ type: "blob" });
+      append(`Archive size: ${Math.round(blob.size / 1024)} KB, files: ${Object.keys(children).length}`, "info");
+      
+      // Verify zip contents
+      const zipTest = new JSZip();
+      const loaded = await zipTest.loadAsync(blob);
+      const zipFiles = Object.keys(loaded.files);
+      append(`Zip contains: ${zipFiles.join(", ")}`, "info");
+      append(`Main filename: "${mainFilename}"`, "info");
+      append(`Main file exists in zip: ${zipFiles.includes(mainFilename)}`, "info");
 
       append("Uploading archive to start simulation...", "info");
       const resp = await simulations.runSimulationFromArchive({
@@ -795,6 +863,7 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
         mainFilename,
         zipBlob: blob,
       });
+      append(`Backend responded: ${JSON.stringify(resp).slice(0, 200)}...`, "info");
 
       const simId = resp?.id;
       setSimulationId(simId || null);
@@ -822,20 +891,42 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
 
       // Poll status and files
       let done = false;
+      let pollCount = 0;
+      const maxPolls = 60; // Stop polling after 5 minutes (60 * 5s intervals)
+      const startTime = Date.now();
+      
       const pollStatus = async () => {
         try {
+          pollCount++;
           const s = await simulations.getSimulation(simId);
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          append(`Poll #${pollCount} (${elapsed}s): ${JSON.stringify(s).slice(0,200)}...`);
+          
           if (s?.logs && Array.isArray(s.logs)) {
             const newLogs = s.logs.slice(lastLogsCount.current);
             newLogs.forEach((ln) => append(typeof ln === "string" ? ln : JSON.stringify(ln)));
             lastLogsCount.current = s.logs.length;
           }
-          if (s?.status) {
-            if (s.status === "completed") setStatus("ready");
-            else setStatus(s.status);
-            if (["completed", "failed", "cancelled"].includes(s.status)) done = true;
+          const raw = s?.status || s?.state || s?.phase;
+          const norm = normalizeSimStatus(raw);
+          append(`Status: raw="${raw}" normalized="${norm}"`);
+          
+          if (norm) {
+            if (norm === "completed") setStatus("ready");
+            else if (norm === "failed") setStatus("error");
+            else setStatus(norm);
+            if (["completed", "failed", "error", "cancelled"].includes(norm)) done = true;
           }
-        } catch {}
+          
+          // Check for timeout
+          if (pollCount >= maxPolls && !done) {
+            append(`Simulation timeout after ${pollCount} polls (${elapsed}s). Last status: ${raw}`, "error");
+            setStatus("error");
+            done = true;
+          }
+        } catch (err) {
+          append(`Polling error: ${err.message}`, "error");
+        }
       };
       const pollFiles = async () => {
         try {

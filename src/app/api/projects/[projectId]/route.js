@@ -3,8 +3,8 @@ import { getAuthHeader } from "@/lib/api";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
-export async function GET(req, { params }) {
-  const { projectId } = params;
+export async function GET(req, context) {
+  const { projectId } = (await context).params;
   const url = `${BASE_URL}/api/projects/${projectId}`;
   const headers = await getAuthHeader();
   const upstream = await fetch(url, { headers, cache: "no-store" });
@@ -12,8 +12,8 @@ export async function GET(req, { params }) {
   return NextResponse.json(data, { status: upstream.status });
 }
 
-export async function PUT(req, { params }) {
-  const { projectId } = params;
+export async function PUT(req, context) {
+  const { projectId } = (await context).params;
   const body = await req.json();
   const url = `${BASE_URL}/api/projects/${projectId}`;
   const headers = { ...(await getAuthHeader()), "content-type": "application/json" };
@@ -27,8 +27,8 @@ export async function PUT(req, { params }) {
   return new NextResponse(text, { status: upstream.status });
 }
 
-export async function DELETE(req, { params }) {
-  const { projectId } = params;
+export async function DELETE(req, context) {
+  const { projectId } = (await context).params;
   const url = `${BASE_URL}/api/projects/${projectId}`;
   const headers = await getAuthHeader();
   const upstream = await fetch(url, { method: "DELETE", headers });

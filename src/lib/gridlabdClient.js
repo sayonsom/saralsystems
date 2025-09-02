@@ -1,4 +1,4 @@
-// Minimal client for our Next.js proxy routes
+// Minimal client for our Next.js API routes
 
 async function handle(res) {
   if (!res.ok) throw new Error(await res.text());
@@ -8,10 +8,12 @@ async function handle(res) {
 
 export const projects = {
   async listProjects() {
-    return handle(await fetch("/api/projects", { cache: "no-store" }));
+    const data = await handle(await fetch("/api/projects", { cache: "no-store" }));
+    return Array.isArray(data) ? data : (data?.projects || data?.data || []);
   },
   async createProject(data) {
-    return handle(await fetch("/api/projects", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) }));
+    const resp = await handle(await fetch("/api/projects", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) }));
+    return resp?.id ? resp : (resp?.project || resp?.data || resp);
   },
   async getProject(id) {
     return handle(await fetch(`/api/projects/${id}`, { cache: "no-store" }));
@@ -27,11 +29,20 @@ export const projects = {
 export const simulations = {
   async runSimulationFromArchive({ projectId, name, mainFilename, zipBlob }) {
     const fd = new FormData();
-    fd.append("project_id", projectId);
-    fd.append("main_filename", mainFilename);
-    if (name) fd.append("name", name);
+    
+    // Required file field - always include the zip blob
     fd.append("file", zipBlob, "project.zip");
-
+    
+    // Always include project_id (use fallback if not provided)
+    fd.append("project_id", projectId || "local");
+    
+    // Optional fields
+    if (mainFilename) fd.append("main_filename", mainFilename);
+    if (name) fd.append("name", name);
+    
+    console.log("FormData fields:", Array.from(fd.entries()).map(([k,v]) => `${k}: ${v instanceof File ? `File(${v.size}B, ${v.name})` : v}`));
+    console.log("Zip blob details:", zipBlob.size, zipBlob.type);
+    
     return handle(await fetch("/api/simulations/archive", { method: "POST", body: fd }));
   },
   async getSimulation(id) {

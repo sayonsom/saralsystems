@@ -4,22 +4,43 @@ import { getAuthHeader } from "@/lib/api";
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 export async function POST(req) {
+  if (!BASE_URL) {
+    return NextResponse.json({ error: "Missing NEXT_PUBLIC_BACKEND_BASE_URL" }, { status: 500 });
+  }
+  
   const url = `${BASE_URL}/api/simulations/archive`;
   const auth = await getAuthHeader();
-  const contentType = req.headers.get("content-type");
+  
+  // Log request details for debugging
+  console.log("Archive upload request to:", url);
+  console.log("Auth header:", auth);
+  
+  try {
+    const formData = await req.formData();
+    const entries = Array.from(formData.entries());
+    console.log("Form fields received:", entries.map(([k,v]) => `${k}: ${v instanceof File ? `File(${v.size}B, ${v.name})` : v}`));
+    
+    const upstream = await fetch(url, {
+      method: "POST",
+      headers: auth,
+      body: formData,
+      cache: "no-store",
+    });
 
-  const upstream = await fetch(url, {
-    method: "POST",
-    headers: { ...auth, ...(contentType ? { "content-type": contentType } : {}) },
-    body: req.body,
-    duplex: "half",
-  });
+    console.log("Backend response status:", upstream.status);
+    const responseText = await upstream.text();
+    console.log("Backend response body:", responseText.slice(0, 500));
 
-  const ct = upstream.headers.get("content-type") || "application/json";
-  if (ct.includes("application/json")) {
-    const data = await upstream.json();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      data = { raw_response: responseText };
+    }
+
     return NextResponse.json(data, { status: upstream.status });
+  } catch (e) {
+    console.error("Archive upload error:", e);
+    return NextResponse.json({ error: e?.message || "Upstream error" }, { status: 502 });
   }
-  const blob = await upstream.blob();
-  return new NextResponse(blob, { status: upstream.status, headers: { "content-type": ct } });
 }

@@ -4,7 +4,7 @@ import { getAuthHeader } from "@/lib/api";
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 export async function GET(req, { params }) {
-  const { simulationId } = params;
+  const { simulationId } = await params;
   const url = `${BASE_URL}/api/simulations/${simulationId}/files`;
   const headers = await getAuthHeader();
   const upstream = await fetch(url, { headers, cache: "no-store" });

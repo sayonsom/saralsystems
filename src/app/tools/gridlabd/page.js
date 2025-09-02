@@ -1,5 +1,6 @@
 import AuthShowPublic from "@/components/AuthShowPublic";
 import GridlabdClient from "@/components/GridlabdClient";
+import GridlabdPostsScroll from "@/components/GridlabdPostsScroll";
 
 export const metadata = {
   title: "GridLAB-D Web IDE",
@@ -232,6 +233,9 @@ export default function Page() {
               }}
             />
           </section>
+
+          {/* GRIDLAB-D POSTS SECTION */}
+          <GridlabdPostsScroll />
         </AuthShowPublic>
       </GridlabdClient>
     </main>

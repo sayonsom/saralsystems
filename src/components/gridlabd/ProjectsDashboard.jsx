@@ -28,10 +28,11 @@ export default function ProjectsDashboard() {
     (async () => {
       try {
         const list = await apiProjects.listProjects();
-        if (!cancelled) setProjects(list);
+        const arr = Array.isArray(list) ? list : (list?.projects || list?.data || []);
+        if (!cancelled) setProjects(arr || []);
       } catch (e) {
         const list = listLocalProjects(uid);
-        if (!cancelled) setProjects(list);
+        if (!cancelled) setProjects(Array.isArray(list) ? list : []);
       }
     })();
     return () => { cancelled = true; };
@@ -47,12 +48,13 @@ export default function ProjectsDashboard() {
     // data: { name, description, is_public, tags }
     try {
       const created = await apiProjects.createProject(data);
-      setProjects((prev) => [created, ...prev]);
-      openProject(created);
+      const p = created?.id ? created : (created?.project || created?.data || created);
+      setProjects((prev) => [p, ...(Array.isArray(prev) ? prev : [])]);
+      openProject(p);
     } catch (e) {
       // Fallback to local
       const p = createLocalProject(uid, data);
-      setProjects((prev) => [p, ...prev]);
+      setProjects((prev) => [p, ...(Array.isArray(prev) ? prev : [])]);
       openProject(p);
     }
   };

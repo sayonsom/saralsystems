@@ -21,7 +21,8 @@ function StatusBadge({ status, lastModified }) {
 export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete, search }) {
   const filtered = useMemo(() => {
     const q = (search || "").toLowerCase();
-    return (projects || []).filter((p) => (p.name || "").toLowerCase().includes(q));
+    const arr = Array.isArray(projects) ? projects : (projects?.projects || projects?.data || []);
+    return arr.filter((p) => (p?.name || "").toLowerCase().includes(q));
   }, [projects, search]);
 
   if (!filtered.length) {
