@@ -11,7 +11,7 @@ export default function Footer() {
               <span>Saral</span>
             </a>
             <div className="mt-3 text-sm text-gray-600 space-y-1">
-              <p>GSTIN: 00ABCDE1234Z5Z6</p>
+              <p>GSTIN: 29ABECS1100R1Z4</p>
               <p>CIN: U00000AA2020PTC000000</p>
               <p>In business since 2020</p>
             </div>

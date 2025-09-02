@@ -51,10 +51,8 @@ export default function ProjectsDashboard() {
   if (view === "ide" && activeProject) {
     return (
       <div className="min-h-screen">
-        <div className="bg-gray-50">
-          <GridlabdIDE projectName={activeProject.name} />
-        </div>
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2">
+        <GridlabdIDE projectName={activeProject.name} />
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
           <button onClick={() => setView("list")} className="px-3 py-2 text-sm rounded-md bg-white border shadow">← Back to projects</button>
         </div>
       </div>

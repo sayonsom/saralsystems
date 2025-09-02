@@ -18,18 +18,50 @@ export default function Header() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [mobileSuggestions, setMobileSuggestions] = useState([]);
   const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
-  const navLinks = ["Services", "AI Brief", "Use Cases", "Insights", "Tools", "Contact"];
+  // New dropdown states
+  const [showMainMenu, setShowMainMenu] = useState(false); // "Menu" dropdown
+  const [showToolsMenu, setShowToolsMenu] = useState(false); // "Tools" dropdown
+
+  // Removed old navLinks in favor of structured menus
   const { user, logout } = useAuth();
   const userMenuRef = useRef(null);
   const desktopSearchRef = useRef(null);
   const mobileSearchRef = useRef(null);
+  const mainMenuRef = useRef(null);
+  const toolsMenuRef = useRef(null);
   const router = useRouter();
 
-  // Close user menu when clicking outside
+  // Menu items for consolidated "Menu" dropdown
+  const menuItems = [
+    { label: "About Us", href: "/#about-us" },
+    { label: "Services", href: "/#services" },
+    { label: "Use Cases", href: "/#use-cases" },
+    { label: "Insights", href: "/insights" },
+    { label: "Blog", href: "/blog" },
+  ];
+
+  // Tool links for the Tools dropdown
+  const toolLinks = [
+    { label: "GridLAB-D IDE", href: "/tools/gridlabd" },
+    { label: "Generate Distribution Models", href: "/tools/generate-distribution-models" },
+    { label: "Smart Meter Load Disaggregation", href: "/tools/smart-meter-load-disaggregation" },
+    { label: "Satellite Resilience Monitoring", href: "/tools/satellite-resilience-monitoring" },
+    { label: "Data Center Designer", href: "/tools/data-center-designer" },
+    { label: "All Tools", href: "/tools" },
+  ];
+
+  // Close menus when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+      const target = event.target;
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
         setShowUserMenu(false);
+      }
+      if (mainMenuRef.current && !mainMenuRef.current.contains(target)) {
+        setShowMainMenu(false);
+      }
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(target)) {
+        setShowToolsMenu(false);
       }
     }
 
@@ -115,7 +147,7 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-200">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center space-x-2 text-2xl font-bold text-gray-900">
@@ -125,19 +157,65 @@ export default function Header() {
           </div>
           <div className="hidden md:block">
             <nav className="flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <a
-                  key={link}
-                  href={
-                    link === "Insights" ? "/insights" : 
-                    link === "Tools" ? "/tools" :
-                    `#${link.toLowerCase().replace(" ", "-")}`
-                  }
+              {/* Removed standalone About Us; now included under Menu */}
+
+              {/* Consolidated Menu dropdown */}
+              <div className="relative" ref={mainMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowMainMenu((v) => !v)}
                   className="text-gray-700 hover:text-orange-600 transition-colors duration-300"
+                  aria-haspopup="menu"
+                  aria-expanded={showMainMenu}
                 >
-                  {link}
-                </a>
-              ))}
+                  Menu
+                </button>
+                {showMainMenu && (
+                  <div className="absolute mt-2 left-0 w-48 bg-white border border-gray-200 shadow-lg z-50">
+                    <ul className="py-2">
+                      {menuItems.map((item) => (
+                        <li key={item.href}>
+                          <a
+                            href={item.href}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {item.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Tools dropdown */}
+              <div className="relative" ref={toolsMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowToolsMenu((v) => !v)}
+                  className="text-gray-700 hover:text-orange-600 transition-colors duration-300"
+                  aria-haspopup="menu"
+                  aria-expanded={showToolsMenu}
+                >
+                  Tools
+                </button>
+                {showToolsMenu && (
+                  <div className="absolute mt-2 left-0 w-72 bg-white border border-gray-200 shadow-lg z-50">
+                    <ul className="py-2">
+                      {toolLinks.map((t) => (
+                        <li key={t.href}>
+                          <a
+                            href={t.href}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {t.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               {/* Global Search (desktop) */}
               <div className="relative">
@@ -175,6 +253,7 @@ export default function Header() {
                 )}
               </div>
 
+              {/* User section */}
               {user ? (
                 <div className="relative" ref={userMenuRef}>
                   <button
@@ -184,15 +263,11 @@ export default function Header() {
                     <User size={20} />
                     <span>{user.email?.split('@')[0] || 'User'}</span>
                   </button>
-                  
                   {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                      <a
-                        href="/tools"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Tools
-                      </a>
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <a href="/tools?tab=profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
+                      <a href="/tools?tab=projects" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Projects</a>
+                      <a href="/tools?tab=api-keys" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">API Keys</a>
                       <button
                         onClick={logout}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -211,12 +286,15 @@ export default function Header() {
                 </button>
               )}
 
-              <a
-                href="#contact"
-                className="h-16 flex items-center bg-[#EA580B] text-black px-4 font-semibold hover:bg-black hover:text-white transition-colors duration-300"
-              >
-                Request a Consultation
-              </a>
+              {/* Show Request a Consultation only when logged out */}
+              {!user && (
+                <a
+                  href="#contact"
+                  className="h-16 flex items-center bg-[#EA580B] text-black px-4 font-semibold hover:bg-black hover:text-white transition-colors duration-300"
+                >
+                  Request a Consultation
+                </a>
+              )}
             </nav>
           </div>
           <div className="md:hidden">
@@ -260,20 +338,42 @@ export default function Header() {
             </div>
           )}
           <nav className="flex flex-col items-center space-y-4 mt-4">
-            {navLinks.map((link) => (
-              <a
-                key={link}
-                href={
-                  link === "Insights" ? "/insights" : 
-                  link === "Tools" ? "/tools" :
-                  `#${link.toLowerCase().replace(" ", "-")}`
-                }
-                onClick={() => setIsOpen(false)}
-                className="text-gray-700 hover:text-orange-600 transition-colors duration-300 text-lg"
-              >
-                {link}
-              </a>
-            ))}
+            {/* Removed standalone About Us in mobile; now included under Menu */}
+
+            {/* Menu items */}
+            <div className="w-full px-4">
+              <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Menu</div>
+              <div className="flex flex-col">
+                {menuItems.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="py-2 text-gray-700 hover:text-orange-600 transition-colors duration-300"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Tools list */}
+            <div className="w-full px-4">
+              <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Tools</div>
+              <div className="flex flex-col">
+                {toolLinks.map((t) => (
+                  <a
+                    key={t.href}
+                    href={t.href}
+                    onClick={() => setIsOpen(false)}
+                    className="py-2 text-gray-700 hover:text-orange-600 transition-colors duration-300"
+                  >
+                    {t.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
             {user ? (
               <div className="text-center w-full px-4">
                 <div className="flex items-center justify-center space-x-2 text-gray-700 mb-4">
@@ -281,11 +381,25 @@ export default function Header() {
                   <span>{user.email?.split('@')[0] || 'User'}</span>
                 </div>
                 <a
-                  href="/tools"
+                  href="/tools?tab=projects"
                   onClick={() => setIsOpen(false)}
-                  className="block bg-orange-600 text-white px-6 py-2 rounded-none font-semibold hover:bg-orange-700 transition-colors duration-300 mb-4"
+                  className="block bg-orange-600 text-white px-6 py-2 rounded-none font-semibold hover:bg-orange-700 transition-colors duration-300 mb-2"
                 >
-                  Access Tools
+                  My Projects
+                </a>
+                <a
+                  href="/tools?tab=api-keys"
+                  onClick={() => setIsOpen(false)}
+                  className="block bg-gray-100 text-gray-900 px-6 py-2 rounded-none font-semibold hover:bg-gray-200 transition-colors duration-300 mb-2"
+                >
+                  API Keys
+                </a>
+                <a
+                  href="/tools?tab=profile"
+                  onClick={() => setIsOpen(false)}
+                  className="block bg-gray-100 text-gray-900 px-6 py-2 rounded-none font-semibold hover:bg-gray-200 transition-colors duration-300 mb-4"
+                >
+                  My Profile
                 </a>
                 <button
                   onClick={() => {
@@ -308,13 +422,16 @@ export default function Header() {
                 Sign In
               </button>
             )}
-            <a
-              href="#contact"
-              onClick={() => setIsOpen(false)}
-              className="bg-gray-900 text-white px-6 py-2 rounded-none font-semibold hover:bg-gray-800 transition-colors duration-300"
-            >
-              Request a Consultation
-            </a>
+            {/* Show Request a Consultation only when logged out (mobile) */}
+            {!user && (
+              <a
+                href="#contact"
+                onClick={() => setIsOpen(false)}
+                className="bg-gray-900 text-white px-6 py-2 rounded-none font-semibold hover:bg-gray-800 transition-colors duration-300"
+              >
+                Request a Consultation
+              </a>
+            )}
           </nav>
         </div>
       )}
