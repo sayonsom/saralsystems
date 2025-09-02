@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAllEnergyAnalysisPosts } from '@/lib/contentful';
 import { getAllInsights } from '@/lib/markdown';
+import { getAllPosts } from '@/lib/posts';
 import Fuse from 'fuse.js';
 
 function buildResultsWithHighlights(items, query) {
@@ -91,12 +92,16 @@ export async function GET(request) {
       return NextResponse.json({ query: q, count: 0, results: [] });
     }
 
-    const [posts, insights] = await Promise.all([
+    const [posts, insights, mdPosts] = await Promise.all([
       getAllEnergyAnalysisPosts(1000),
       getAllInsights(),
+      getAllPosts(),
     ]);
 
+    const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
     const items = [
+      // Contentful blog posts
       ...posts.map((p) => ({
         type: 'blog',
         title: p.title,
@@ -106,6 +111,7 @@ export async function GET(request) {
         href: `/blog/${p.slug}`,
         content: p.plainTextContent || '',
       })),
+      // Markdown insights (metadata only, as before)
       ...insights.map((i) => ({
         type: 'insight',
         title: i.title,
@@ -114,6 +120,16 @@ export async function GET(request) {
         date: i.date,
         href: `/insights/${i.slug}`,
         content: '',
+      })),
+      // Local markdown technical posts in src/app/posts
+      ...mdPosts.map((p) => ({
+        type: 'post',
+        title: p.title,
+        excerpt: p.excerpt,
+        tags: p.tags || [],
+        date: p.date,
+        href: `/posts/${p.slug}`,
+        content: stripHtml(p.contentHtml || ''),
       })),
     ];
 
