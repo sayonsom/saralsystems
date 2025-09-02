@@ -1,0 +1,42 @@
+import { NextResponse } from "next/server";
+import { getAuthHeader } from "@/lib/api";
+
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
+
+export async function GET(req, { params }) {
+  const { projectId } = params;
+  const url = `${BASE_URL}/api/projects/${projectId}`;
+  const headers = await getAuthHeader();
+  const upstream = await fetch(url, { headers, cache: "no-store" });
+  const data = await upstream.json();
+  return NextResponse.json(data, { status: upstream.status });
+}
+
+export async function PUT(req, { params }) {
+  const { projectId } = params;
+  const body = await req.json();
+  const url = `${BASE_URL}/api/projects/${projectId}`;
+  const headers = { ...(await getAuthHeader()), "content-type": "application/json" };
+  const upstream = await fetch(url, { method: "PUT", headers, body: JSON.stringify(body) });
+  const ct = upstream.headers.get("content-type") || "";
+  if (ct.includes("application/json")) {
+    const data = await upstream.json();
+    return NextResponse.json(data, { status: upstream.status });
+  }
+  const text = await upstream.text();
+  return new NextResponse(text, { status: upstream.status });
+}
+
+export async function DELETE(req, { params }) {
+  const { projectId } = params;
+  const url = `${BASE_URL}/api/projects/${projectId}`;
+  const headers = await getAuthHeader();
+  const upstream = await fetch(url, { method: "DELETE", headers });
+  const ct = upstream.headers.get("content-type") || "";
+  if (ct.includes("application/json")) {
+    const data = await upstream.json();
+    return NextResponse.json(data, { status: upstream.status });
+  }
+  const text = await upstream.text();
+  return new NextResponse(text, { status: upstream.status });
+}

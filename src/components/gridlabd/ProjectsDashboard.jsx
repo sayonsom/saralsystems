@@ -2,13 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { createProject, listProjects, removeProjects } from "@/lib/projects";
+import { createProject as createLocalProject, listProjects as listLocalProjects, removeProjects as removeLocalProjects } from "@/lib/projects";
 import ProjectsEmptyState from "./ProjectsEmptyState";
 import ProjectsSidebar from "./ProjectsSidebar";
 import ProjectsHeader from "./ProjectsHeader";
 import ProjectsTable from "./ProjectsTable";
 import NewProjectModal from "./NewProjectModal";
 import GridlabdIDE from "@/components/GridlabdIDE";
+import { projects as apiProjects } from "@/lib/gridlabdClient";
 
 export default function ProjectsDashboard() {
   const { user } = useAuth();
@@ -22,30 +23,53 @@ export default function ProjectsDashboard() {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-    if (!uid) return;
-    const list = listProjects(uid);
-    setProjects(list);
+    // Try backend first; fallback to local storage projects if backend not available
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await apiProjects.listProjects();
+        if (!cancelled) setProjects(list);
+      } catch (e) {
+        const list = listLocalProjects(uid);
+        if (!cancelled) setProjects(list);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [uid]);
 
   const openProject = (p) => {
     setActiveProject(p);
     setView("ide");
+    try { localStorage.setItem("gridlabd:currentProjectId", p?.id || ""); } catch {}
   };
 
-  const handleCreate = (data) => {
-    const p = createProject(uid, data);
-    setProjects((prev) => [p, ...prev]);
-    openProject(p);
+  const handleCreate = async (data) => {
+    // data: { name, description, is_public, tags }
+    try {
+      const created = await apiProjects.createProject(data);
+      setProjects((prev) => [created, ...prev]);
+      openProject(created);
+    } catch (e) {
+      // Fallback to local
+      const p = createLocalProject(uid, data);
+      setProjects((prev) => [p, ...prev]);
+      openProject(p);
+    }
   };
 
   const handleDuplicate = (p) => {
-    const cp = createProject(uid, { name: `${p.name} (Copy)`, template: p.template, description: p.description });
+    const cp = createLocalProject(uid, { name: `${p.name} (Copy)`, template: p.template, description: p.description });
     setProjects((prev) => [cp, ...prev]);
   };
 
-  const handleDelete = (p) => {
-    const next = removeProjects(uid, [p.id]);
-    setProjects(next);
+  const handleDelete = async (p) => {
+    try {
+      await apiProjects.deleteProject(p.id);
+      setProjects((prev) => prev.filter((x) => x.id !== p.id));
+    } catch {
+      const next = removeLocalProjects(uid, [p.id]);
+      setProjects(next);
+    }
   };
 
   if (view === "ide" && activeProject) {

@@ -43,6 +43,13 @@ export function createProject(uid, data) {
   const existing = listProjects(uid);
   const next = [project, ...existing];
   saveProjects(uid, next);
+  // Initialize local workspace storage
+  try {
+    localStorage.setItem(`projects.${id}.files`, JSON.stringify([
+      { filename: 'main.glm', content: '' },
+    ]));
+    localStorage.setItem(`projects.${id}.mainFilename`, 'main.glm');
+  } catch {}
   return project;
 }
 
@@ -64,4 +71,29 @@ export function removeProjects(uid, ids) {
   const next = list.filter(p => !set.has(p.id));
   saveProjects(uid, next);
   return next;
+}
+
+export function getProjectFiles(projectId) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(`projects.${projectId}.files`);
+    return safeParse(raw, []);
+  } catch { return []; }
+}
+
+export function saveProjectFiles(projectId, files) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(`projects.${projectId}.files`, JSON.stringify(files || []));
+  } catch {}
+}
+
+export function getMainFilename(projectId) {
+  if (typeof window === 'undefined') return 'main.glm';
+  try { return localStorage.getItem(`projects.${projectId}.mainFilename`) || 'main.glm'; } catch { return 'main.glm'; }
+}
+
+export function setMainFilename(projectId, main) {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(`projects.${projectId}.mainFilename`, main || 'main.glm'); } catch {}
 }

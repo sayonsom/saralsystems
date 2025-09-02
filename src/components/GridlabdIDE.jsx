@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import JSZip from "jszip";
+import { simulations } from "@/lib/gridlabdClient";
 
 // Colors from GitHub Dark for visual parity
 const COLORS = {
@@ -299,7 +301,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function Header({ onNew, onSave, onRun, status, title }) {
+function Header({ onNew, onSave, onRun, onCancel, status, title }) {
   return (
     <div
       className="w-full flex items-center justify-between"
@@ -333,6 +335,16 @@ function Header({ onNew, onSave, onRun, status, title }) {
           <IconSave />
           Save
         </button>
+        {status === "running" && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex items-center gap-1 text-sm font-medium rounded-md px-3 py-2"
+            style={{ background: COLORS.secondary, color: COLORS.warning, border: `1px solid ${COLORS.border}` }}
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="button"
           onClick={onRun}
@@ -522,14 +534,21 @@ function FileExplorer({
 
 export default function GridlabdIDE({ projectName = "Untitled Project" }) {
   const [status, setStatus] = useState("ready");
+  const [projectId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    try { return localStorage.getItem("gridlabd:currentProjectId") || null; } catch { return null; }
+  });
+  const filesKey = projectId ? `projects.${projectId}.files` : null;
+  const mainKey = projectId ? `projects.${projectId}.mainFilename` : null;
   const [activeTab, setActiveTab] = useState("console");
   const [editorValue, setEditorValue] = useState(INITIAL_GLM);
   const [outputFiles, setOutputFiles] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [editorPct, setEditorPct] = useState(50);
   const [hasVizData, setHasVizData] = useState(false);
+  const [simulationId, setSimulationId] = useState(null);
 
-  // Project state (in-memory)
+  // Project state (persisted to localStorage per project)
   const [fileTree, setFileTree] = useState(() => ({
     "/": {
       type: "folder",
@@ -557,12 +576,61 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
   }));
   const [expanded, setExpanded] = useState(() => new Set(["/", "/config", "/data"]));
   const [activeFilePath, setActiveFilePath] = useState("/main.glm");
+  const [mainFilename, setMainFilename] = useState("main.glm");
 
   const { lines, append, setLines } = useConsole();
 
   const containerRef = useRef(null);
   const isResizingRef = useRef(false);
   const canvasRef = useRef(null);
+  const wsRef = useRef(null);
+  const pollRef = useRef(null);
+  const lastLogsCount = useRef(0);
+
+  // Load persisted files for this project
+  useEffect(() => {
+    if (!filesKey) return;
+    try {
+      const raw = localStorage.getItem(filesKey);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        const root = { "/": { type: "folder", children: {} } };
+        for (const f of arr) {
+          const name = f.filename || f.name;
+          const content = f.content || "";
+          root["/"].children[name] = { type: "file", size: content.length, content };
+        }
+        setFileTree(root);
+        // If main file exists, open it
+        const mf = (mainKey && localStorage.getItem(mainKey)) || "main.glm";
+        setMainFilename(mf);
+        const node = root["/"].children[mf];
+        if (node && node.type === "file") {
+          setActiveFilePath(`/${mf}`);
+          setEditorValue(node.content || "");
+        }
+      }
+    } catch {}
+  }, [filesKey, mainKey]);
+
+  // Persist files to localStorage when fileTree changes
+  useEffect(() => {
+    if (!filesKey) return;
+    try {
+      const files = [];
+      const children = fileTree?.["/"]?.children || {};
+      for (const [name, node] of Object.entries(children)) {
+        if (node.type === "file") files.push({ filename: name, content: node.content || "" });
+      }
+      localStorage.setItem(filesKey, JSON.stringify(files));
+    } catch {}
+  }, [fileTree, filesKey]);
+
+  // Persist main filename
+  useEffect(() => {
+    if (!mainKey) return;
+    try { localStorage.setItem(mainKey, mainFilename); } catch {}
+  }, [mainFilename, mainKey]);
 
   // Derived: is editor dirty vs tree
   const isDirty = useMemo(() => {
@@ -679,17 +747,8 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
 
   const handleSave = useCallback(() => {
     try {
-      // Update in-memory project
+      // Update in-memory project and persist via effect
       setFileTree((prev) => setFileContent(prev, activeFilePath, editorValue));
-
-      // Download the file
-      const blob = new Blob([editorValue], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = baseName(activeFilePath) || "model.glm";
-      a.click();
-      URL.revokeObjectURL(url);
       append("File saved successfully", "success");
     } catch (e) {
       append("Failed to save file", "error");
@@ -706,8 +765,10 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
       append("Simulation already running...", "warning");
       return;
     }
-    if (!editorValue.trim()) {
-      append("Error: No model code to simulate", "error");
+    const mfPath = `/${mainFilename}`;
+    const mfNode = getNode(fileTree, mfPath);
+    if (!mfNode || mfNode.type !== "file") {
+      append(`Error: Main file not found: ${mainFilename}`, "error");
       setActiveTab("console");
       return;
     }
@@ -716,37 +777,90 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
     setErrorMessage("");
     setActiveTab("console");
 
-    append("Starting GridLab-D simulation...", "info");
     try {
-      append("Bundling project files...", "info");
-      await delay(500);
-      append("Parsing GLM model...", "info");
-      await delay(500);
-      append("Initializing power flow solver...", "info");
-      await delay(800);
-      append("Running simulation timesteps...", "info");
-      await delay(1500);
+      append("Zipping project files...", "info");
+      const zip = new JSZip();
+      const children = fileTree?.["/"]?.children || {};
+      for (const [name, node] of Object.entries(children)) {
+        if (node.type === "file") {
+          zip.file(name, node.content || "");
+        }
+      }
+      const blob = await zip.generateAsync({ type: "blob" });
 
-      append("Simulation completed successfully!", "success");
-      append("Total runtime: 2.8 seconds", "info");
-      append("Convergence achieved in 5 iterations", "info");
+      append("Uploading archive to start simulation...", "info");
+      const resp = await simulations.runSimulationFromArchive({
+        projectId: projectId || "local",
+        name: `${projectName} run`,
+        mainFilename,
+        zipBlob: blob,
+      });
 
-      // Mock files
-      setOutputFiles([
-        { name: "meter_output.csv", size: "2.4 KB" },
-        { name: "voltage_profile.csv", size: "1.8 KB" },
-        { name: "power_losses.csv", size: "956 B" },
-      ]);
+      const simId = resp?.id;
+      setSimulationId(simId || null);
+      append(`Simulation started. ID: ${simId}`, "success");
+
+      // Try live console via unauthenticated WebSocket
+      try {
+        const base = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "";
+        const wsBase = base.replace(/^http/i, "ws");
+        const ws = new WebSocket(`${wsBase}/ws/simulations/${simId}`);
+        wsRef.current = ws;
+        ws.onmessage = (ev) => {
+          const data = typeof ev.data === "string" ? ev.data : "";
+          try {
+            const obj = JSON.parse(data);
+            const msg = obj.message || obj.log || data;
+            append(msg);
+          } catch {
+            append(data);
+          }
+        };
+        ws.onerror = () => {};
+        ws.onclose = () => {};
+      } catch {}
+
+      // Poll status and files
+      let done = false;
+      const pollStatus = async () => {
+        try {
+          const s = await simulations.getSimulation(simId);
+          if (s?.logs && Array.isArray(s.logs)) {
+            const newLogs = s.logs.slice(lastLogsCount.current);
+            newLogs.forEach((ln) => append(typeof ln === "string" ? ln : JSON.stringify(ln)));
+            lastLogsCount.current = s.logs.length;
+          }
+          if (s?.status) {
+            if (s.status === "completed") setStatus("ready");
+            else setStatus(s.status);
+            if (["completed", "failed", "cancelled"].includes(s.status)) done = true;
+          }
+        } catch {}
+      };
+      const pollFiles = async () => {
+        try {
+          const list = await simulations.listSimulationFiles(simId);
+          setOutputFiles(Array.isArray(list) ? list : (list?.files || []));
+        } catch {}
+      };
+      await pollStatus();
+      await pollFiles();
+      const int = setInterval(async () => {
+        if (done) return;
+        await pollStatus();
+        await pollFiles();
+      }, 5000);
+      pollRef.current = int;
+      setTimeout(() => clearInterval(int), 10 * 60 * 1000);
 
       setHasVizData(true);
-      setStatus("ready");
     } catch (e) {
       const msg = e?.message || "Unknown error";
       append(`Error: ${msg}`, "error");
       setErrorMessage(msg);
       setStatus("error");
     }
-  }, [status, editorValue, append]);
+  }, [status, fileTree, mainFilename, append, projectId, projectName]);
 
   // Resizing logic
   useEffect(() => {
@@ -906,13 +1020,32 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
           {t.label}
         </button>
       ))}
+      <div className="ml-auto flex items-center gap-2 text-xs" style={{ color: COLORS.textMuted }}>
+        <label>Main file:</label>
+        <input
+          value={mainFilename}
+          onChange={(e) => setMainFilename(e.target.value)}
+          className="px-2 py-1 rounded-md"
+          style={{ background: COLORS.secondary, border: `1px solid ${COLORS.border}`, color: COLORS.text }}
+        />
+      </div>
     </div>
   );
+
+  const cancelRun = useCallback(async () => {
+    if (!simulationId) return;
+    try { await simulations.cancelSimulation(simulationId); } catch {}
+    append("Simulation cancelled", "warning");
+    setStatus("cancelled");
+    try { if (wsRef.current) wsRef.current.close(); } catch {}
+    wsRef.current = null;
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  }, [simulationId, append]);
 
   return (
     <div className="min-h-screen w-full overflow-hidden" style={{ background: COLORS.bg, color: COLORS.text }}>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }`}</style>
-      <Header onNew={handleNew} onSave={handleSave} onRun={runSimulation} status={status} title={`GridLab-D Web IDE · ${projectName}`} />
+      <Header onNew={handleNew} onSave={handleSave} onRun={runSimulation} onCancel={cancelRun} status={status} title={`GridLab-D Web IDE · ${projectName}`} />
 
       <div ref={containerRef} className="flex" style={{ height: "calc(100vh - 60px)" }}>
         {/* New File Explorer Panel */}
@@ -996,13 +1129,29 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
                       Generated Output Files:
                     </h3>
                     <div className="space-y-2 mb-5">
-                      {outputFiles.map((f) => (
-                        <div key={f.name} className="flex items-center gap-2 rounded-md px-3 py-2" style={{ background: COLORS.bgMuted }}>
-                          <IconDoc className="shrink-0" fill={COLORS.success} />
-                          <span className="text-sm" style={{ color: COLORS.text }}>{f.name}</span>
-                          <span className="text-xs ml-auto" style={{ color: "#6e7681" }}>{f.size}</span>
-                        </div>
-                      ))}
+                      {outputFiles.map((f) => {
+                        const size = typeof f.size === "number" ? prettyBytes(f.size) : (f.size || "");
+                        const name = f.name || f.filename;
+                        const onDownload = async () => {
+                          try {
+                            const blob = await simulations.downloadSimulationFile(simulationId, name);
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = name;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                          } catch {}
+                        };
+                        return (
+                          <div key={name} className="flex items-center gap-2 rounded-md px-3 py-2" style={{ background: COLORS.bgMuted }}>
+                            <IconDoc className="shrink-0" fill={COLORS.success} />
+                            <span className="text-sm" style={{ color: COLORS.text }}>{name}</span>
+                            <span className="text-xs ml-auto mr-3" style={{ color: "#6e7681" }}>{size}</span>
+                            <button onClick={onDownload} className="text-xs px-2 py-1 rounded-md" style={{ background: COLORS.secondary, border: `1px solid ${COLORS.border}`, color: COLORS.text }}>Download</button>
+                          </div>
+                        );
+                      })}
                     </div>
                     <div className="rounded-md p-4" style={{ background: COLORS.bgMuted }}>
                       <h4 className="text-sm mb-2" style={{ color: COLORS.textMuted }}>
@@ -1076,6 +1225,13 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
       </div>
     </div>
   );
+}
+
+function prettyBytes(num) {
+  if (typeof num !== "number" || isNaN(num)) return "";
+  const units = ["B", "KB", "MB", "GB"]; let i = 0; let n = num;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2)} ${units[i]}`;
 }
 
 function delay(ms) {

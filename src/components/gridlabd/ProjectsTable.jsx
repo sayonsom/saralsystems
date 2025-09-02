@@ -21,7 +21,7 @@ function StatusBadge({ status, lastModified }) {
 export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete, search }) {
   const filtered = useMemo(() => {
     const q = (search || "").toLowerCase();
-    return (projects || []).filter((p) => p.name.toLowerCase().includes(q));
+    return (projects || []).filter((p) => (p.name || "").toLowerCase().includes(q));
   }, [projects, search]);
 
   if (!filtered.length) {
@@ -46,7 +46,7 @@ export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete,
         </thead>
         <tbody>
           {filtered.map((p) => (
-            <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
+            <tr key={p.id || p._id} className="border-b border-gray-100 hover:bg-gray-50">
               <td className="py-3 px-4"><input type="checkbox" className="rounded border-gray-300" /></td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-3">
@@ -61,8 +61,8 @@ export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete,
                   </div>
                 </div>
               </td>
-              <td className="py-3 px-4 text-gray-700">{p.owner === 'You' ? 'You' : 'You'}</td>
-              <td className="py-3 px-4"><StatusBadge status={p.status} lastModified={p.lastModified} /></td>
+              <td className="py-3 px-4 text-gray-700">{p.owner_name || p.owner || "You"}</td>
+              <td className="py-3 px-4"><StatusBadge status={p.status || "success"} lastModified={p.updated_at || p.lastModified} /></td>
               <td className="py-3 px-4">
                 <div className="flex items-center justify-end gap-2">
                   <button onClick={() => onDuplicate(p)} className="p-2 text-gray-400 hover:text-gray-600" title="Duplicate">⎘</button>

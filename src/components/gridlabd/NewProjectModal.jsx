@@ -17,8 +17,26 @@ export default function NewProjectModal({ open, onClose, onCreate }) {
   const [name, setName] = useState("");
   const [template, setTemplate] = useState(templates[0]);
   const [description, setDescription] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [tags, setTags] = useState("");
 
   if (!open) return null;
+
+  const submit = () => {
+    if (!name.trim()) return;
+    const payload = {
+      name: name.trim(),
+      description: description.trim(),
+      is_public: !!isPublic,
+      tags: tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      template,
+    };
+    onCreate?.(payload);
+    onClose?.();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -30,7 +48,7 @@ export default function NewProjectModal({ open, onClose, onCreate }) {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Project Name<span className="text-red-500"> *</span></label>
             <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Enter project name" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
           </div>
 
@@ -47,16 +65,24 @@ export default function NewProjectModal({ open, onClose, onCreate }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Add project description" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
           </div>
+
+          <div className="flex items-center gap-2">
+            <input id="is_public" type="checkbox" className="rounded border-gray-300" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
+            <label htmlFor="is_public" className="text-sm text-gray-700">Make project public</label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
+            <input value={tags} onChange={(e) => setTags(e.target.value)} type="text" placeholder="eg. power_flow, solar_pv" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
         </div>
 
         <div className="flex gap-3 mt-6">
           <button onClick={onClose} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
           <button
-            onClick={() => {
-              onCreate({ name, template, description });
-              onClose();
-            }}
-            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            onClick={submit}
+            disabled={!name.trim()}
+            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60"
           >
             Create Project
           </button>
