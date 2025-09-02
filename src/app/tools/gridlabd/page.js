@@ -94,6 +94,13 @@ export default function Page() {
                 No installs. Prompt to generate models. Run long or large scenarios in the cloud or on-prem. See insights in beautiful charts.
               </p>
 
+              {/* Single Hero CTA */}
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <a href="#simulate" className="inline-flex items-center justify-center rounded-lg bg-black text-white px-5 py-3 font-semibold hover:bg-gray-900">
+                  Simulate a feeder model
+                </a>
+              </div>
+
               {/* Hero image placeholder */}
               <div className="mt-8 aspect-[16/9] w-full rounded-2xl border bg-white shadow-sm flex items-center justify-center">
                 <div className="text-center p-6">
@@ -178,11 +185,8 @@ export default function Page() {
               <h3 className="text-xl sm:text-2xl font-bold">Build & run your first feeder in minutes</h3>
               <p className="mt-1 text-white/90">Prompt the model, adjust DERs, launch a cloud run, share results.</p>
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <a href="/sandbox" className="inline-flex items-center justify-center rounded-lg bg-white text-gray-900 px-5 py-3 font-semibold hover:bg-gray-100">
-                  Open Sandbox
-                </a>
-                <a href="/docs" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-5 py-3 font-semibold">
-                  Read Docs
+                <a href="#simulate" className="inline-flex items-center justify-center rounded-lg bg-white text-gray-900 px-5 py-3 font-semibold hover:bg-gray-100">
+                  Simulate a feeder model
                 </a>
               </div>
             </div>
