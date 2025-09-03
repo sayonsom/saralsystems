@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import Link from 'next/link';
 
 export const metadata = {
   title: "Sign in",
@@ -20,7 +21,7 @@ export default function SignInPage() {
             Sign In button in the header or go back to the home page.
           </p>
           <div className="mt-6">
-            <a href="/" className="text-orange-600 hover:text-orange-700 font-semibold">Go home</a>
+            <Link href="/" className="text-orange-600 hover:text-orange-700 font-semibold">Go home</Link>
           </div>
         </div>
       </main>

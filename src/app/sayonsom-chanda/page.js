@@ -213,7 +213,7 @@ export default function Portfolio() {
   const videos = [
     { id: "VFhtltR6dFc", title: "TEDx Talk - Making AI Our Best Bet Against Climate Change" },
     { id: "VIDEO_ID_2", title: "GridLAB-D Modeling Demo" },
-    { id: "VIDEO_ID_3", title: "Data Center Sustainability Talk" },
+    { id: "AfP0kz7vers", title: "WOMANIUM QUANTUM : DAY 20 ❯ Quantum Applications" },
   ];
 
   // Auto-scroll for horizontal gallery (slower)
@@ -322,19 +322,19 @@ export default function Portfolio() {
               <a href="https://x.com/sayonsom" className="text-gray-600 hover:text-indigo-600 transition-colors" aria-label="Twitter / X">
                 <Twitter className="w-6 h-6" />
               </a>
-              <a href="/" className="text-gray-600 hover:text-indigo-600 transition-colors" aria-label="Website">
+              <Link href="/" className="text-gray-600 hover:text-indigo-600 transition-colors" aria-label="Website">
                 <Globe className="w-6 h-6" />
-              </a>
+              </Link>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
               <a href="#contact" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
                 <Calendar className="inline-block w-4 h-4 mr-2" />
                 Book Speaking
               </a>
-              <a href="/newsletter" className="px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-lg font-semibold hover:border-indigo-400 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+              <Link href="/newsletter" className="px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-lg font-semibold hover:border-indigo-400 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
                 <Mail className="inline-block w-4 h-4 mr-2" />
                 Subscribe
-              </a>
+              </Link>
             </div>
           </div>
         </div>
