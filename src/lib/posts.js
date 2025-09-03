@@ -63,6 +63,9 @@ export async function getPostData(slug) {
     tags: data.tags || [],
     categories: data.categories || [],
     description: data.description || excerpt,
+    // New: cover image metadata from frontmatter
+    coverImage: data.coverImage || null,
+    coverAlt: data.coverAlt || '',
     ...data,
   };
 }

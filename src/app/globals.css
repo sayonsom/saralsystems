@@ -13,6 +13,22 @@ body {
   font-family: var(--font-sen), sans-serif;
 }
 
+/* Improve code block appearance */
+.prose pre {
+  background-color: #0f172a; /* slate-900 */
+  color: #f8fafc;            /* slate-50 */
+}
+.prose pre code {
+  background: transparent;   /* avoid double bg on code inside pre */
+  color: inherit;
+}
+
+/* Optional: inline code stays subtle */
+.prose :not(pre) > code {
+  background-color: #f1f5f9; /* slate-100 */
+  color: #0f172a;            /* slate-900 */
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

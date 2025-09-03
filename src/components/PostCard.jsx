@@ -47,39 +47,79 @@ export default function PostCard({ post, delay = 0, featured = false }) {
         animation: `fadeInUp 0.6s ease-out ${delay}s both`,
       }}
     >
-      {/* Header with gradient and tags */}
-      <div className={`${featured ? 'h-40' : 'h-32'} bg-gradient-to-br from-gray-900 to-gray-700 relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-blue-600/20"></div>
-        <div className="absolute top-4 left-4 right-4">
-          <div className="flex flex-wrap gap-1 mb-2">
-            {post.categories?.slice(0, 1).map((category, i) => (
-              <span
-                key={i}
-                className={`px-2 py-1 text-xs font-medium text-white rounded ${getCategoryColor(category)}`}
-              >
-                {category}
-              </span>
-            ))}
+      {/* Media header: cover image if available, otherwise gradient */}
+      {post.coverImage ? (
+        <div className={`${featured ? 'h-40' : 'h-32'} relative overflow-hidden`}>
+          <img
+            src={post.coverImage}
+            alt={post.coverAlt || post.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute top-4 left-4 right-4">
+            <div className="flex flex-wrap gap-1 mb-2">
+              {post.categories?.slice(0, 1).map((category, i) => (
+                <span
+                  key={i}
+                  className={`px-2 py-1 text-xs font-medium text-white rounded ${getCategoryColor(category)}`}
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex flex-wrap gap-1">
+              {post.tags?.slice(0, 3).map((tag, i) => (
+                <span
+                  key={i}
+                  className={`px-2 py-1 text-xs font-medium text-white rounded-full ${getTagColor(tag)} opacity-90`}
+                >
+                  {tag}
+                </span>
+              ))}
+              {post.tags?.length > 3 && (
+                <span className="px-2 py-1 text-xs font-medium text-white rounded-full bg-gray-500 opacity-90">
+                  +{post.tags.length - 3}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="flex flex-wrap gap-1">
-            {post.tags?.slice(0, 3).map((tag, i) => (
-              <span
-                key={i}
-                className={`px-2 py-1 text-xs font-medium text-white rounded-full ${getTagColor(tag)} opacity-90`}
-              >
-                {tag}
-              </span>
-            ))}
-            {post.tags?.length > 3 && (
-              <span className="px-2 py-1 text-xs font-medium text-white rounded-full bg-gray-500 opacity-90">
-                +{post.tags.length - 3}
-              </span>
-            )}
+      ) : (
+        <div className={`${featured ? 'h-40' : 'h-32'} bg-gradient-to-br from-gray-900 to-gray-700 relative overflow-hidden`}>
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-blue-600/20"></div>
+          <div className="absolute top-4 left-4 right-4">
+            <div className="flex flex-wrap gap-1 mb-2">
+              {post.categories?.slice(0, 1).map((category, i) => (
+                <span
+                  key={i}
+                  className={`px-2 py-1 text-xs font-medium text-white rounded ${getCategoryColor(category)}`}
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex flex-wrap gap-1">
+              {post.tags?.slice(0, 3).map((tag, i) => (
+                <span
+                  key={i}
+                  className={`px-2 py-1 text-xs font-medium text-white rounded-full ${getTagColor(tag)} opacity-90`}
+                >
+                  {tag}
+                </span>
+              ))}
+              {post.tags?.length > 3 && (
+                <span className="px-2 py-1 text-xs font-medium text-white rounded-full bg-gray-500 opacity-90">
+                  +{post.tags.length - 3}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* Content */}
       <div className="p-6 flex-grow flex flex-col">
@@ -92,7 +132,7 @@ export default function PostCard({ post, delay = 0, featured = false }) {
           </Link>
         </h3>
         
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+        <p className="text-black text-[15px] mb-4 line-clamp-3 font-[family-name:var(--font-sen)]">
           {post.excerpt}
         </p>
         

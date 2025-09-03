@@ -6,9 +6,9 @@ categories: ["power systems", "tutorial", "beginner"]
 tags: ["gridlabd", "tutorial", "beginner", "power systems", "simulation", "getting started"]
 description: "Complete beginner's guide to GridLAB-D - from installation to running your first simulation"
 excerpt: "New to GridLAB-D? This comprehensive guide covers everything you need to know to get started with distribution system modeling and simulation."
+coverImage: "https://res.cloudinary.com/dti7egpsg/image/upload/v1756862505/SARAL%20Systems%20Blog/Gemini_Generated_Image_xve58xve58xve58x_mbirdp.png"
+coverAlt: "Beginner Guide to GridLAB-D cover image"
 ---
-
-# Beginner Guide to GridLAB-D: Everything You Need in One Page
 
 GridLAB-D can seem overwhelming at first. This guide will get you from zero to running simulations in under an hour.
 

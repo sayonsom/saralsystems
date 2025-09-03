@@ -46,11 +46,20 @@ export async function generateMetadata({ params }) {
       authors: [post.author],
       tags: post.tags,
       siteName: 'Saral Systems',
+      images: post.coverImage ? [
+        {
+          url: post.coverImage,
+          width: 1200,
+          height: 630,
+          alt: post.coverAlt || post.title,
+        },
+      ] : [],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.description || post.excerpt,
+      images: post.coverImage ? [post.coverImage] : [],
     },
     authors: [{ name: post.author }],
     publisher: 'Saral Systems',
@@ -74,6 +83,7 @@ function generateStructuredData(post) {
     description: post.description || post.excerpt,
     datePublished: post.date,
     dateModified: post.date,
+    image: post.coverImage ? [post.coverImage] : undefined,
     author: {
       '@type': 'Person',
       name: post.author,
@@ -140,45 +150,20 @@ export default async function PostPage({ params }) {
                 </ol>
               </nav>
 
-              {/* Categories and Tags */}
-              <div className="mb-6">
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {post.categories?.map((category, i) => (
-                    <a
-                      key={i}
-                      href={`/posts?category=${encodeURIComponent(category)}`}
-                      className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
-                    >
-                      {category}
-                    </a>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {post.tags?.map((tag, i) => (
-                    <a
-                      key={i}
-                      href={`/posts?tag=${encodeURIComponent(tag)}`}
-                      className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                    >
-                      #{tag}
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Title and Meta */}
+              {/* Title */}
               <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
                 {post.title}
               </h1>
               
-              {post.description && (
+              {/* Excerpt */}
+              {post.excerpt && (
                 <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                  {post.description}
+                  {post.excerpt}
                 </p>
               )}
-              
-              {/* Author and Date */}
-              <div className="flex items-center text-sm text-gray-600 border-t border-gray-200 pt-6">
+
+              {/* Author and Date moved above the image, with bottom border */}
+              <div className="flex items-center text-sm text-gray-600 border-b border-gray-200 pb-6 mb-8">
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
                     <span className="text-gray-600 font-medium">
@@ -201,6 +186,25 @@ export default async function PostPage({ params }) {
                   </div>
                 </div>
               </div>
+
+              {/* Cover Image */}
+              {post.coverImage && (
+                <figure className="mb-8">
+                  <div className="relative w-full overflow-hidden rounded-none border border-gray-200">
+                    <img
+                      src={post.coverImage}
+                      alt={post.coverAlt || post.title}
+                      className="w-full h-auto object-cover"
+                      loading="eager"
+                    />
+                  </div>
+                  {post.coverAlt && (
+                    <figcaption className="text-sm text-gray-500 mt-2 text-center">
+                      {post.coverAlt}
+                    </figcaption>
+                  )}
+                </figure>
+              )}
             </header>
 
             {/* Content */}
@@ -208,7 +212,7 @@ export default async function PostPage({ params }) {
 
             {/* Footer */}
             <footer className="mt-16 pt-8 border-t border-gray-200">
-              {/* Tags for easy navigation */}
+              {/* Tags for easy navigation (moved to bottom) */}
               {post.tags && post.tags.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Related Topics</h3>

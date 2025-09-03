@@ -6,6 +6,8 @@ categories: ["microgrids", "power systems", "simulation"]
 tags: ["gridlabd", "distributed energy", "solar PV", "battery storage", "economic analysis", "tutorial", "microgrids"]
 description: "A hands-on guide to modeling microgrids with solar, storage, and smart loads in GridLAB-D"
 excerpt: "Learn how to build sophisticated microgrid models in GridLAB-D with solar panels, battery storage, and smart loads. This comprehensive tutorial covers everything from basic setup to economic analysis."
+coverImage: "https://res.cloudinary.com/dti7egpsg/image/upload/v1756862505/SARAL%20Systems%20Blog/Gemini_Generated_Image_xve58xve58xve58x_mbirdp.png"
+coverAlt: "Building Your First Microgrid Model in GridLAB-D cover image"
 ---
 
 # Building Your First Microgrid Model in GridLAB-D
@@ -44,49 +46,6 @@ object climate {
    name "weather";
    tmyfile "CA-San_francisco.tmy3";
    interpolate QUADRATIC;
-}
-```
-
-See what we did there? We're pulling actual weather data from a TMY3 file. That's your solar radiation, temperature, wind speed - everything that affects PV output.
-
-## Adding the Distribution Network
-
-Your microgrid needs bones - the actual electrical network. We'll keep it simple but realistic: a main feeder, a couple of laterals, and connection points for our DERs.
-
-```
-// Main grid connection point
-object meter {
-    name "main_meter";
-    phases ABCN;
-    nominal_voltage 7200;
-    voltage_A 7200+0j;
-    voltage_B -3600-6235j;
-    voltage_C -3600+6235j;
-}
-
-// Distribution transformer
-object transformer {
-    name "main_transformer";
-    phases ABCN;
-    from "main_meter";
-    to "microgrid_bus";
-    configuration "transformer_config";
-}
-
-object transformer_configuration {
-    name "transformer_config";
-    connect_type WYE_WYE;
-    power_rating 1000 kVA;
-    primary_voltage 12470;
-    secondary_voltage 480;
-    impedance 0.01+0.06j;
-}
-
-// Main microgrid bus
-object node {
-    name "microgrid_bus";
-    phases ABCN;
-    nominal_voltage 277;
 }
 ```
 
