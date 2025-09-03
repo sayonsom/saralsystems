@@ -36,12 +36,13 @@ export default function ProtectedRoute({ children }) {
         <h2 className="text-2xl sm:text-3xl font-bold mb-3">Sign in required</h2>
         <p className="text-gray-600 mb-6">Please sign in to access this part of the tool. Public preview remains available.</p>
         <div className="flex items-center gap-3">
-          <a href="/tools" className="px-5 py-2.5 bg-orange-600 text-white rounded-md hover:bg-orange-700">Go to Tools</a>
+          <a href="/signin" className="px-5 py-2.5 bg-orange-600 text-white rounded-md hover:bg-orange-700">Sign In</a>
+          <a href="/tools" className="px-5 py-2.5 border border-gray-300 rounded-md hover:bg-gray-50">Go to Tools</a>
           <a href="/" className="px-5 py-2.5 border border-gray-300 rounded-md hover:bg-gray-50">Home</a>
         </div>
       </div>
     );
   }
 
-  return <>{children}</>;
+  return <>{children}</>; 
 }

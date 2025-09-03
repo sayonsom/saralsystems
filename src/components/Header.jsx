@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import LoginModal from "./LoginModal";
 import { useRouter } from "next/navigation";
 import SearchModal from "./SearchModal";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,6 +31,18 @@ export default function Header() {
   const mainMenuRef = useRef(null);
   const toolsMenuRef = useRef(null);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Open Login modal automatically on /signin; redirect if already logged in
+  useEffect(() => {
+    if (pathname === "/signin") {
+      if (user) {
+        router.replace("/tools");
+      } else {
+        setShowLoginModal(true);
+      }
+    }
+  }, [pathname, user, router]);
 
   // Menu items for consolidated "Menu" dropdown
   const menuItems = [
@@ -142,6 +155,13 @@ export default function Header() {
       setShowSearchModal(true);
       setShowSuggestions(false);
       setShowMobileSuggestions(false);
+    }
+  };
+
+  const handleCloseLogin = () => {
+    setShowLoginModal(false);
+    if (pathname === "/signin") {
+      router.push("/");
     }
   };
 
@@ -278,12 +298,12 @@ export default function Header() {
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowLoginModal(true)}
+                <a
+                  href="/signin"
                   className="text-gray-700 px-4 py-2 font-semibold hover:text-orange-600 transition-colors duration-300"
                 >
                   Sign In
-                </button>
+                </a>
               )}
 
               {/* Show Request a Consultation only when logged out */}
@@ -412,15 +432,13 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => {
-                  setShowLoginModal(true);
-                  setIsOpen(false);
-                }}
+              <a
+                href="/signin"
+                onClick={() => setIsOpen(false)}
                 className="text-gray-700 px-6 py-2 font-semibold hover:text-orange-600 transition-colors duration-300"
               >
                 Sign In
-              </button>
+              </a>
             )}
             {/* Show Request a Consultation only when logged out (mobile) */}
             {!user && (
@@ -439,7 +457,7 @@ export default function Header() {
       {/* Login Modal */}
       <LoginModal 
         isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)} 
+        onClose={handleCloseLogin} 
       />
 
       {/* Search Modal */}

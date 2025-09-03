@@ -77,7 +77,7 @@ export default function Page() {
         <AuthShowPublic>
           {/* HERO */}
           <section className="relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-sky-50" />
+            <div className="absolute inset-0 bg-transparent" />
             <div className="relative max-w-5xl mx-auto px-4 py-14 sm:py-18">
               <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-medium text-indigo-700">
                 <svg width="14" height="14" viewBox="0 0 24 24" className="opacity-80">
@@ -96,8 +96,8 @@ export default function Page() {
 
               {/* Single Hero CTA */}
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                <a href="#simulate" className="inline-flex items-center justify-center rounded-lg bg-black text-white px-5 py-3 font-semibold hover:bg-gray-900">
-                  Simulate a feeder model
+                <a href="/signin" className="inline-flex items-center justify-center rounded-lg bg-black text-white px-5 py-3 font-semibold hover:bg-gray-900">
+                  Get started
                 </a>
               </div>
 
@@ -185,7 +185,7 @@ export default function Page() {
               <h3 className="text-xl sm:text-2xl font-bold">Build & run your first feeder in minutes</h3>
               <p className="mt-1 text-white/90">Prompt the model, adjust DERs, launch a cloud run, share results.</p>
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <a href="#simulate" className="inline-flex items-center justify-center rounded-lg bg-white text-gray-900 px-5 py-3 font-semibold hover:bg-gray-100">
+                <a href="/signin" className="inline-flex items-center justify-center rounded-lg bg-white text-gray-900 px-5 py-3 font-semibold hover:bg-gray-100">
                   Simulate a feeder model
                 </a>
               </div>
