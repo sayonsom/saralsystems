@@ -3,17 +3,14 @@ import { auth } from "@/lib/firebase";
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "";
 
 export async function getAuthHeader() {
-  // Dev: use a fixed token so backend can bypass auth
-  if (process.env.NODE_ENV !== "production") {
-    return { Authorization: "Bearer dev" };
-  }
+  // Always use Firebase ID token; never send Google OAuth access token
   try {
     const user = auth.currentUser;
-    if (!user) return { Authorization: "Bearer dev" };
-    const token = await user.getIdToken(/* forceRefresh */ false);
+    if (!user) return {};
+    const token = await user.getIdToken(true);
     return { Authorization: `Bearer ${token}` };
   } catch (e) {
-    return { Authorization: "Bearer dev" };
+    return {};
   }
 }
 
@@ -26,17 +23,17 @@ export async function apiFetch(path, opts = {}) {
   const url = `${BASE_URL}${path}`;
   const authHeader = await getAuthHeader();
   const headers = { ...(opts.headers || {}), ...authHeader };
-  const init = { ...opts, headers };
+  const init = { mode: "cors", ...opts, headers };
 
   const res = await fetch(url, init);
   if (!res.ok) {
-    // If unauthorized in prod, try refresh token once
-    if (res.status === 401 && process.env.NODE_ENV === "production") {
+    // If unauthorized, try refresh token once and retry
+    if (res.status === 401) {
       try {
         const user = auth.currentUser;
         if (user) await user.getIdToken(true);
         const retryHeaders = { ...(opts.headers || {}), ...(await getAuthHeader()) };
-        const retry = await fetch(url, { ...opts, headers: retryHeaders });
+        const retry = await fetch(url, { mode: "cors", ...opts, headers: retryHeaders });
         if (!retry.ok) throw new Error(await retry.text());
         return isJsonResponse(retry) ? retry.json() : retry.blob();
       } catch (e) {

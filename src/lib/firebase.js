@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDkdQEKRmZXvUtnCMfgmK3I3P5DVNFuvYE",
   authDomain: "saralsystem.firebaseapp.com",
   projectId: "saralsystem",
-  storageBucket: "saralsystem.firebasestorage.app",
+  storageBucket: "saralsystem.appspot.com",
   messagingSenderId: "59436472453",
   appId: "1:59436472453:web:62dccc7b08d487770e31ec",
   measurementId: "G-EFM6T9Z91P"

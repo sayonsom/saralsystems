@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getAuthHeader } from "@/lib/api";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 export async function GET(req, { params }) {
   const { simulationId, filename } = await params;
   const url = `${BASE_URL}/api/simulations/${simulationId}/files/${encodeURIComponent(filename)}`;
-  const headers = await getAuthHeader();
+  const auth = req.headers.get("authorization");
+  const headers = auth ? { Authorization: auth } : {};
 
   const upstream = await fetch(url, { headers });
   if (!upstream.ok) {

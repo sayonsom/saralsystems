@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getAuthHeader } from "@/lib/api";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
@@ -9,11 +8,12 @@ export async function POST(req) {
   }
   
   const url = `${BASE_URL}/api/simulations/archive`;
-  const auth = await getAuthHeader();
+  const auth = req.headers.get("authorization");
+  const headers = auth ? { Authorization: auth } : {};
   
   // Log request details for debugging
   console.log("Archive upload request to:", url);
-  console.log("Auth header:", auth);
+  console.log("Auth header:", headers);
   
   try {
     const formData = await req.formData();
@@ -22,7 +22,7 @@ export async function POST(req) {
     
     const upstream = await fetch(url, {
       method: "POST",
-      headers: auth,
+      headers,
       body: formData,
       cache: "no-store",
     });

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAuthHeader } from "@/lib/api";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 export async function GET(req) {
   const url = `${BASE_URL}/api/projects`;
-  const headers = await getAuthHeader();
+  const auth = req.headers.get("authorization");
+  const headers = auth ? { Authorization: auth } : {};
   const upstream = await fetch(url, { headers, cache: "no-store" });
   const ct = upstream.headers.get("content-type") || "";
   if (ct.includes("application/json")) {
@@ -19,7 +19,8 @@ export async function GET(req) {
 export async function POST(req) {
   const body = await req.json();
   const url = `${BASE_URL}/api/projects`;
-  const headers = { ...(await getAuthHeader()), "content-type": "application/json" };
+  const auth = req.headers.get("authorization");
+  const headers = { ...(auth ? { Authorization: auth } : {}), "content-type": "application/json" };
   const upstream = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
   const ct = upstream.headers.get("content-type") || "";
   if (ct.includes("application/json")) {
