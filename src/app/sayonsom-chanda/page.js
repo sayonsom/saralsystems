@@ -302,15 +302,15 @@ export default function Portfolio() {
             <div className="mb-6 inline-block">
               <div className="w-24 h-24 rounded-full bg-gradient-to-r from-indigo-500 to-sky-600 p-1">
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                  <span className="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-sky-600 bg-clip-text text-transparent">SC</span>
+                  <Image src="/sayon.webp" alt="Sayonsom Chanda" className="w-20 h-20 rounded-full object-cover" />
                 </div>
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
-              Sayonsom Chanda
+              Sayonsom Chanda, Ph.D.
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-              AI, power systems, and cloud — building tools for GridLAB-D modeling, distribution planning, and data centers.
+              I specialize in de-risking and bringing advanced computing technologies like AI/ML and quantum computing to modernise our power grids for a sustainable, resilient future.
             </p>
             <div className="flex justify-center space-x-4 mb-6">
               <a href="https://github.com/sayonsom" className="text-gray-600 hover:text-indigo-600 transition-colors" aria-label="GitHub">
