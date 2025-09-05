@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Header from "@/components/Header";
 import {
   ChevronDown,
@@ -302,7 +303,7 @@ export default function Portfolio() {
             <div className="mb-6 inline-block">
               <div className="w-24 h-24 rounded-full bg-gradient-to-r from-indigo-500 to-sky-600 p-1">
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                  <Image src="/sayon.webp" alt="Sayonsom Chanda" className="w-20 h-20 rounded-full object-cover" />
+                  <Image src="/sayon.webp" alt="Sayonsom Chanda" width={80} height={80} priority className="w-20 h-20 rounded-full object-cover" />
                 </div>
               </div>
             </div>
