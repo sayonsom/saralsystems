@@ -591,6 +591,9 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
   const [editorPct, setEditorPct] = useState(50);
   const [hasVizData, setHasVizData] = useState(false);
   const [simulationId, setSimulationId] = useState(null);
+  const [anonymousWarning, setAnonymousWarning] = useState(false);
+  const [streamAvailable, setStreamAvailable] = useState(true);
+  const streamActivityRef = useRef(0);
 
   // Project state (persisted to localStorage per project)
   const [fileTree, setFileTree] = useState(() => ({
@@ -867,6 +870,7 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
 
       const simId = resp?.id;
       setSimulationId(simId || null);
+      if (resp?.output_summary?.anonymous === true) setAnonymousWarning(true);
       append(`Simulation started. ID: ${simId}`, "success");
 
       // Try live console via unauthenticated WebSocket
@@ -875,19 +879,51 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
         const wsBase = base.replace(/^http/i, "ws");
         const ws = new WebSocket(`${wsBase}/ws/simulations/${simId}`);
         wsRef.current = ws;
+        const markActivity = () => { streamActivityRef.current = Date.now(); };
         ws.onmessage = (ev) => {
-          const data = typeof ev.data === "string" ? ev.data : "";
+          const raw = typeof ev.data === "string" ? ev.data : "";
+          if (!raw) return;
+          markActivity();
           try {
-            const obj = JSON.parse(data);
-            const msg = obj.message || obj.log || data;
-            append(msg);
+            const obj = JSON.parse(raw);
+            // Status updates coming over stream
+            if (obj.status && !obj.type) {
+              append(`Status update: ${obj.status}`,'info');
+            }
+            if (obj.type === 'log') {
+              const stream = obj.stream || 'stdout';
+              const baseType = stream === 'stderr' ? 'error' : '';
+              const msgs = [];
+              if (Array.isArray(obj.lines)) msgs.push(...obj.lines);
+              if (obj.message) msgs.push(obj.message);
+              if (obj.line) msgs.push(obj.line);
+              if (obj.log) msgs.push(obj.log);
+              if (msgs.length === 0) msgs.push(raw);
+              msgs.forEach(m => String(m).split(/\r?\n/).forEach(seg => seg && append(seg, baseType)));
+              return;
+            }
+            if (obj.type === 'status') {
+              if (obj.message) append(obj.message,'info');
+              if (obj.state) append(`State: ${obj.state}`,'info');
+              return;
+            }
+            const msg = obj.message || obj.log || obj.data || obj.line;
+            if (msg) {
+              String(msg).split(/\r?\n/).forEach(seg => seg && append(seg));
+            } else {
+              append(raw);
+            }
           } catch {
-            append(data);
+            raw.split(/\r?\n/).forEach(seg => seg && append(seg));
           }
         };
-        ws.onerror = () => {};
-        ws.onclose = () => {};
+        ws.onerror = () => { setStreamAvailable(false); };
+        ws.onclose = () => { if (streamActivityRef.current === 0) setStreamAvailable(false); };
       } catch {}
+      // Streaming fallback timer
+      setTimeout(() => {
+        if (streamActivityRef.current === 0) setStreamAvailable(false);
+      }, 8000);
 
       // Poll status and files
       let done = false;
@@ -1206,7 +1242,21 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
         <div className="flex flex-col" style={{ flexBasis: `${100 - editorPct}%`, background: COLORS.bg }}>
           {Tabs}
           <div className="flex-1 p-5 overflow-y-auto" style={{ fontFamily: "Menlo, Monaco, monospace" }}>
-            {activeTab === "console" && <ConsoleView lines={lines} />}
+            {activeTab === "console" && (
+              <>
+                {!streamAvailable && (
+                  <div className="mb-3 text-xs rounded-md px-3 py-2" style={{background:'#4d1f24',border:'1px solid #da3633',color:'#ffdcd7'}}>
+                    Streaming unavailable—will display final logs when simulation completes.
+                  </div>
+                )}
+                {anonymousWarning && (
+                  <div className="mb-3 text-xs rounded-md px-3 py-2" style={{background:'#5a3e1b',border:'1px solid #9e6a03',color:'#ffd8a8'}}>
+                    Anonymous run: results are temporary and not linked to an account.
+                  </div>
+                )}
+                <ConsoleView lines={lines} />
+              </>
+            )}
 
             {activeTab === "output" && (
               <div>
@@ -1307,6 +1357,12 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
                 ) : (
                   <div className="text-center py-10" style={{ color: COLORS.success }}>
                     No errors detected
+                  </div>
+                )}
+                {/* Surface backend-provided simulation.error_message if present in last poll (lines search) */}
+                {!errorMessage && lines.slice(-20).some(l => /error_message/i.test(l.text)) && (
+                  <div className="mt-4 text-xs" style={{color:COLORS.warning}}>
+                    Backend reported an error message in logs.
                   </div>
                 )}
               </div>

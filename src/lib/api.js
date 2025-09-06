@@ -1,12 +1,13 @@
 import { auth } from "@/lib/firebase";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "";
+// Normalize backend base (strip trailing slashes)
+const RAW_BASE = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "";
+const BASE_URL = RAW_BASE.replace(/\/+$/, "");
 
-// Temporary toggle to disable sending Authorization header from the frontend
-const SEND_AUTH_HEADER = false;
+// Enable sending Authorization header
+const SEND_AUTH_HEADER = true;
 
 export async function getAuthHeader() {
-  // Always use Firebase ID token; never send Google OAuth access token
   try {
     if (!SEND_AUTH_HEADER) return {};
     const user = auth.currentUser;
@@ -24,29 +25,32 @@ function isJsonResponse(resp) {
 }
 
 export async function apiFetch(path, opts = {}) {
-  const url = `${BASE_URL}${path}`;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const url = `${BASE_URL}${cleanPath}`; // guaranteed single slash join
   const authHeader = await getAuthHeader();
   const headers = { ...(opts.headers || {}), ...authHeader };
   const init = { mode: "cors", ...opts, headers };
 
-  const res = await fetch(url, init);
+  let res = await fetch(url, init);
   if (!res.ok) {
-    // If unauthorized, try refresh token once and retry (only when auth header is enabled)
     if (res.status === 401 && SEND_AUTH_HEADER) {
       try {
         const user = auth.currentUser;
         if (user) await user.getIdToken(true);
         const retryHeaders = { ...(opts.headers || {}), ...(await getAuthHeader()) };
-        const retry = await fetch(url, { mode: "cors", ...opts, headers: retryHeaders });
-        if (!retry.ok) throw new Error(await retry.text());
-        return isJsonResponse(retry) ? retry.json() : retry.blob();
-      } catch (e) {
-        throw e;
+        res = await fetch(url, { mode: "cors", ...opts, headers: retryHeaders });
+      } catch {}
+      if (res.status === 401) {
+        if (typeof window !== "undefined") {
+          // Redirect to sign-in
+          setTimeout(() => { window.location.href = "/signin"; }, 50);
+        }
       }
     }
-    const txt = await res.text();
-    throw new Error(txt || `Request failed: ${res.status}`);
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt || `Request failed: ${res.status}`);
+    }
   }
-
   return isJsonResponse(res) ? res.json() : res.blob();
 }
