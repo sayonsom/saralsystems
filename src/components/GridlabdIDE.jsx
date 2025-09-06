@@ -930,8 +930,20 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
       let pollCount = 0;
       const maxPolls = 60; // Stop polling after 5 minutes (60 * 5s intervals)
       const startTime = Date.now();
+      let consecutiveTerminal = 0;
+
+      const finalize = (reason) => {
+        if (done) return;
+        done = true;
+        append(`Polling stopped: ${reason}`, 'info');
+        if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+        if (wsRef.current) { try { wsRef.current.close(); } catch {} }
+      };
+      
+      const isTerminal = (norm) => ["completed", "failed", "error", "cancelled"].includes(norm);
       
       const pollStatus = async () => {
+        if (done) return; // guard
         try {
           pollCount++;
           const s = await simulations.getSimulation(simId);
@@ -947,24 +959,35 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
           const norm = normalizeSimStatus(raw);
           append(`Status: raw="${raw}" normalized="${norm}"`);
           
-          if (norm) {
             if (norm === "completed") setStatus("ready");
             else if (norm === "failed") setStatus("error");
             else setStatus(norm);
-            if (["completed", "failed", "error", "cancelled"].includes(norm)) done = true;
+          
+          if (isTerminal(norm)) {
+            consecutiveTerminal++;
+            // Wait for 2 consecutive confirmations to avoid transient flips
+            if (consecutiveTerminal >= 2) {
+              // Surface backend error message if provided
+              if (s?.error_message) {
+                setErrorMessage(s.error_message);
+                append(`Final error_message: ${s.error_message}`, 'error');
+              }
+              finalize(`terminal status '${norm}'`);
+            }
+          } else {
+            consecutiveTerminal = 0;
           }
           
-          // Check for timeout
           if (pollCount >= maxPolls && !done) {
-            append(`Simulation timeout after ${pollCount} polls (${elapsed}s). Last status: ${raw}`, "error");
             setStatus("error");
-            done = true;
+            finalize(`timeout after ${pollCount} polls`);
           }
         } catch (err) {
           append(`Polling error: ${err.message}`, "error");
         }
       };
       const pollFiles = async () => {
+        if (done) return;
         try {
           const list = await simulations.listSimulationFiles(simId);
           setOutputFiles(Array.isArray(list) ? list : (list?.files || []));

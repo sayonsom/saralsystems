@@ -5,7 +5,7 @@ const RAW_BASE = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "";
 const BASE_URL = RAW_BASE.replace(/\/+$/, "");
 
 // Enable sending Authorization header when user logged in
-const SEND_AUTH_HEADER = true;
+const SEND_AUTH_HEADER = false;
 
 export async function getAuthHeader() {
   try {
