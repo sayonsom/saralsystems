@@ -6,10 +6,8 @@ import Header from '@/components/Header';
 function ToolsLayoutContent({ children }) {
   return (
     <div className="min-h-screen w-full bg-gray-50 text-gray-900">
-      {/* Global header */}
       <Header />
-      {/* Page content with spacing under fixed header */}
-      <main className="pt-16 min-h-screen">
+      <main className="pt-16 h-[calc(100vh-4rem)] flex flex-col overflow-hidden">{/* 4rem = header height */}
         {children}
       </main>
     </div>
