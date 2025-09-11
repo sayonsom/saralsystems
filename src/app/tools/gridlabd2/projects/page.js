@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
@@ -16,6 +16,8 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -97,6 +99,29 @@ export default function ProjectsPage() {
     }
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Filter projects based on search
+  const filteredProjects = useMemo(() => {
+    const q = (search || "").toLowerCase();
+    const arr = Array.isArray(projects) ? projects : (projects?.projects || projects?.data || []);
+    return arr.filter((p) => (p?.name || "").toLowerCase().includes(q));
+  }, [projects, search]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProjects = filteredProjects.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to first page if current page is out of bounds
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -121,21 +146,21 @@ export default function ProjectsPage() {
         {!hasProjects ? (
           <div className="text-center py-20">
             <div className="mb-6">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📄</span>
+              <div className="w-16 h-16 bg-orange-100 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">[FILE]</span>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">No projects yet</h2>
               <p className="text-gray-600 mb-6">Create your first GridLAB-D project to get started.</p>
               <button
                 onClick={() => setShowNew(true)}
-                className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                className="px-6 py-3 bg-orange-600 text-white hover:bg-orange-700 transition-colors"
               >
                 Create Project
               </button>
             </div>
           </div>
         ) : (
-          <div className="flex h-[calc(100vh-200px)] bg-white rounded-lg shadow-sm">
+          <div className="flex h-[calc(100vh-200px)] bg-white shadow-sm">
             <ProjectsSidebar onCreate={() => setShowNew(true)} />
 
             <div className="flex-1 flex flex-col">
@@ -147,7 +172,7 @@ export default function ProjectsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <button className="text-sm font-medium text-blue-600 hover:text-blue-700">Contact sales</button>
-                  <button className="text-gray-500 hover:text-gray-700">✕</button>
+                  <button className="text-gray-500 hover:text-gray-700">[X]</button>
                 </div>
               </div>
 
@@ -158,18 +183,21 @@ export default function ProjectsPage() {
                     onChange={(e) => setSearch(e.target.value)}
                     type="text"
                     placeholder="Search in all projects..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">[SEARCH]</span>
                 </div>
               </div>
 
               <ProjectsTable
-                projects={projects}
+                projects={paginatedProjects}
                 onOpen={handleOpen}
                 onDuplicate={handleDuplicate}
                 onDelete={handleDelete}
                 search={search}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
               />
             </div>
           </div>

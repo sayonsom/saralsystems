@@ -1,29 +1,66 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function Hero() {
-  // set your nav height (px). 64 or 80 are common.
+  const words = [
+    "modeling",
+    "security",
+    "transition",
+    "justice",
+    "forecasting",
+    "simulations",
+  ];
+
+  const [text, setText] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const typingSpeed = isDeleting ? 50 : 100;
+
+  useEffect(() => {
+    const currentWord = words[wordIndex];
+    const handler = setTimeout(() => {
+      const updated = isDeleting
+        ? currentWord.slice(0, Math.max(0, text.length - 1))
+        : currentWord.slice(0, Math.min(currentWord.length, text.length + 1));
+      setText(updated);
+    }, typingSpeed);
+
+    return () => clearTimeout(handler);
+  }, [text, isDeleting, wordIndex]);
+
+  useEffect(() => {
+    const currentWord = words[wordIndex];
+
+    if (!isDeleting && text === currentWord) {
+      const pause = setTimeout(() => setIsDeleting(true), 900);
+      return () => clearTimeout(pause);
+    }
+
+    if (isDeleting && text === "") {
+      setIsDeleting(false);
+      setWordIndex((prev) => (prev + 1) % words.length);
+    }
+  }, [text, isDeleting, wordIndex]);
+
   return (
     <section
-      className="relative w-full overflow-hidden flex items-center justify-center"
-      style={{ minHeight: 'calc(100svh - 80px)' }} // 80px = your nav height
+      className="relative w-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-white via-orange-50 to-white"
+      style={{ minHeight: "calc(100svh - 80px)" }}
     >
-      <video
-        className="absolute inset-0 w-full h-full object-cover"
-        src="/bg_video.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-      />
-      <div className="absolute inset-0 bg-white/60" />
+      {/* Background video removed */}
       <div className="relative z-20 w-full text-center">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-gray-900">
-            Saral: De-risking{" "}
-            <span className="text-orange-600">India&apos;s Energy Future</span>
+            AI Platform for Energy
           </h1>
-          <p className="max-w-3xl mx-auto text-lg md:text-xl text-gray-700 mb-8">
-            We build tools that help reduce risk and uncertainty in modernising and securing
-            India&apos;s energy systems.
+
+          <p className="max-w-3xl mx-auto text-xl md:text-2xl text-gray-800 mb-8 font-mono">
+            <span className="text-orange-600 font-semibold">{text}</span>
+            <span className="inline-block w-0.5 h-6 md:h-7 align-[-3px] bg-orange-600 ml-1 animate-pulse"></span>
           </p>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
               href="/tools"
