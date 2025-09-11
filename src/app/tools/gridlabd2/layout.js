@@ -4,8 +4,8 @@ import Footer from '../../../components/Footer';
 export const metadata = {
   metadataBase: new URL('https://gridguard.saralsystems.co'),
   title: {
-    default: 'GridGuard | Smart Meter Data Analytics & AI Revenue Protection for Indian DISCOMs',
-    template: '%s | GridGuard'
+    default: 'GridLAB-D Cloud | Run Distribution Systems Planning Simulations in the Cloud',
+    template: '%s | SARAL'
   },
   description:
     'GridGuard provides AI-driven smart meter data analytics for Indian DISCOMs to detect electricity theft, reduce AT&C losses, improve billing & collection efficiency, and align with the National Smart Grid Mission & India Energy Stack initiatives.',
@@ -38,23 +38,23 @@ export const metadata = {
     googleBot: { index: true, follow: true, maxSnippet: -1, maxImagePreview: 'large', maxVideoPreview: -1 }
   },
   openGraph: {
-    title: 'GridGuard | AI Smart Meter Analytics & Revenue Protection for DISCOMs',
+    title: 'GridLAB-D Cloud | Run Distribution Systems Planning Simulations in the Cloud',
     description:
       'AI-powered smart meter data analytics platform for Indian DISCOMs. Detect theft, reduce AT&C losses, prioritize field inspections, and improve revenue protection using existing smart meter data.',
     url: 'https://gridguard.saralsystems.co/tools/gridguard',
-    siteName: 'GridGuard',
+    siteName: 'GridLAB-D Cloud',
     type: 'website',
     locale: 'en_IN',
     images: [
-      { url: '/gridguard-og.webp', width: 1200, height: 630, alt: 'GridGuard Smart Meter Data Analytics - AI Revenue Protection' }
+      { url: '/gridlabd-og.webp', width: 1200, height: 630, alt: 'GridLAB-D Cloud - AI Revenue Protection' }
     ]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'GridGuard | Smart Meter Data Analytics & AI Revenue Protection',
+    title: 'GridLAB-D Cloud | Smart Meter Data Analytics & AI Revenue Protection',
     description:
       'Detect smart meter anomalies, reduce AT&C losses & improve collection efficiency with AI-driven analytics for Indian DISCOMs.',
-    images: ['/gridguard-og.webp']
+    images: ['/gridlabd-og.webp']
   },
   category: 'technology'
 };

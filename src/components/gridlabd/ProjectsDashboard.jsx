@@ -100,7 +100,7 @@ export default function ProjectsDashboard() {
 
             <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                GridLAB-D Cloud: Run your simulations in the cloud for better performance. Get in touch to learn more.
+                Upgrade to Enterprise for 
               </div>
               <div className="flex items-center gap-3">
                 <button className="text-sm font-medium text-blue-600 hover:text-blue-700">Contact sales</button>

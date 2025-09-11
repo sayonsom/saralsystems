@@ -9,9 +9,12 @@ import ProjectsTable from '@/components/gridlabd/ProjectsTable';
 import ProjectsHeader from '@/components/gridlabd/ProjectsHeader';
 import ProjectsSidebar from '@/components/gridlabd/ProjectsSidebar';
 import NewProjectModal from '@/components/gridlabd/NewProjectModal';
+import Header from '@/components/Header';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProjectsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [projects, setProjects] = useState([]);
   const [search, setSearch] = useState('');
   const [showNew, setShowNew] = useState(false);
@@ -19,35 +22,53 @@ export default function ProjectsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      router.push('/signin');
+    }
+  }, [user, router]);
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const data = await apiProjects.listProjects();
-        setProjects(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Failed to fetch projects:', error);
-        // Fallback to direct apiFetch
-        try {
-          const data = await apiFetch('/api/projects');
-          setProjects(Array.isArray(data) ? data : []);
-        } catch (fallbackError) {
-          console.error('Fallback also failed:', fallbackError);
+        const data = await apiProjects.list();
+        console.log('Fetched projects:', data);
+        
+        // Handle different response formats
+        if (Array.isArray(data)) {
+          setProjects(data);
+        } else if (data && data.projects && Array.isArray(data.projects)) {
+          setProjects(data.projects);
+        } else if (data && data.data && Array.isArray(data.data)) {
+          setProjects(data.data);
+        } else {
+          console.warn('Unexpected projects response format:', data);
           setProjects([]);
         }
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchProjects();
-  }, []);
+    
+    // Only fetch if user is authenticated
+    if (user) {
+      fetchProjects();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleCreate = async (data) => {
     try {
-      const newProject = await apiProjects.createProject(data);
+      const newProject = await apiProjects.create(data);
       setProjects(prev => [newProject, ...prev]);
       setShowNew(false);
       // Navigate to the project editor
-      router.push(`/tools/gridlabd2?project=${newProject.id}`);
+      router.push(`/tools/gridlabd2/projects/${newProject.id}`);
     } catch (error) {
       console.error('Failed to create project:', error);
       // Fallback: try direct apiFetch if gridlabdClient fails
@@ -58,7 +79,7 @@ export default function ProjectsPage() {
         });
         setProjects(prev => [newProject, ...prev]);
         setShowNew(false);
-        router.push(`/tools/gridlabd2?project=${newProject.id}`);
+        router.push(`/tools/gridlabd2/projects/${newProject.id}`);
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError);
       }
@@ -66,7 +87,7 @@ export default function ProjectsPage() {
   };
 
   const handleOpen = (project) => {
-    router.push(`/tools/gridlabd2?project=${project.id}`);
+    router.push(`/tools/gridlabd2/projects/${project.id}`);
   };
 
   const handleDuplicate = (project) => {
@@ -83,7 +104,7 @@ export default function ProjectsPage() {
 
   const handleDelete = async (project) => {
     try {
-      await apiProjects.deleteProject(project.id);
+      await apiProjects.delete(project.id);
       setProjects(prev => prev.filter(p => p.id !== project.id));
     } catch (error) {
       console.error('Failed to delete project:', error);
@@ -106,8 +127,7 @@ export default function ProjectsPage() {
   // Filter projects based on search
   const filteredProjects = useMemo(() => {
     const q = (search || "").toLowerCase();
-    const arr = Array.isArray(projects) ? projects : (projects?.projects || projects?.data || []);
-    return arr.filter((p) => (p?.name || "").toLowerCase().includes(q));
+    return projects.filter((p) => (p?.name || "").toLowerCase().includes(q));
   }, [projects, search]);
 
   // Calculate pagination
@@ -124,17 +144,27 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading projects...</div>
-      </div>
+      <>
+        <Header pageTitle="GridLAB-D Projects" />
+        <div className="min-h-screen flex items-center justify-center pt-12">
+          <div className="text-gray-500">Loading projects...</div>
+        </div>
+      </>
     );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
   }
 
   const hasProjects = projects.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <>
+      <Header pageTitle="GridLAB-D Projects" />
+      <div className="min-h-screen bg-gray-50 pt-12">
+        <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-4 text-sm text-gray-500">
           <Link href="/tools" className="hover:text-gray-700">Tools</Link>
           <span className="mx-2">/</span>
@@ -168,7 +198,7 @@ export default function ProjectsPage() {
 
               <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
                 <div className="text-sm text-gray-700">
-                  GridLAB-D Cloud: Run your simulations in the cloud for better performance.
+                  Upgrade to NERC-CIP and SOC-2 Compliant Platform for enhanced cybersecurity and compliance.
                 </div>
                 <div className="flex items-center gap-3">
                   <button className="text-sm font-medium text-blue-600 hover:text-blue-700">Contact sales</button>
@@ -208,7 +238,8 @@ export default function ProjectsPage() {
           onClose={() => setShowNew(false)}
           onCreate={handleCreate}
         />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,17 +1,18 @@
-'use client';
-
-import { useState, useCallback } from 'react';
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+"use client";
+import React, { useState, useEffect, useCallback } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { apiFetch } from '@/lib/api';
+import { Download } from 'lucide-react';
 
 export default function OutputsTab({ simulations = [], selectedProjectId, addConsoleMessage }) {
   const [selectedSimulation, setSelectedSimulation] = useState(null);
   const [selectedOutputFile, setSelectedOutputFile] = useState(null);
+  const [outputFiles, setOutputFiles] = useState([]);
   const [outputPreview, setOutputPreview] = useState({ type: 'none', text: '', csv: null });
   const [loading, setLoading] = useState(false);
 
   // Heuristic for previewable text
-  const isTextFile = (filename = '') => /\.(txt|log|json|xml|yaml|yml|ini|conf|glm|md|csv)$/i.test(filename);
+  const isTextFile = (filename = '') => /(\.txt|\.log|\.json|\.xml|\.yaml|\.yml|\.ini|\.conf|\.glm|\.md|\.csv)$/i.test(filename);
 
   // Complex magnitude parser: "+7199.56+0j" => abs
   const complexAbs = (val) => {
@@ -57,7 +58,7 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
       }
 
       const xKey = headers[0] || 'timestamp';
-      const yKeys = headers.slice(1);
+      const yKeys = headers.slice(1, 4); // First 3 columns after timestamp
       const processed = rows.map(r => {
         const o = {}; headers.forEach((h, idx) => {
           let v = r[h];
@@ -76,27 +77,36 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
   const handleSimulationSelect = useCallback(async (simulation) => {
     setSelectedSimulation(simulation);
     setSelectedOutputFile(null);
+    setOutputFiles([]);
     setOutputPreview({ type: 'none', text: '', csv: null });
     setLoading(true);
+    
     try {
-      // The simulation object should contain output files
-      addConsoleMessage(`Selected simulation: ${simulation.simulation_id || simulation.id}`, 'info');
+      const simulationId = simulation.simulation_id || simulation.id;
+      addConsoleMessage(`Selected simulation: ${simulationId}`, 'info');
       
-      // If simulation has outputs, we can list them
-      if (simulation.outputs && simulation.outputs.length > 0) {
-        // Outputs are available directly in the simulation object
-        addConsoleMessage(`Found ${simulation.outputs.length} output files`, 'info');
-      } else {
-        // Try to fetch outputs from API
-        const simulationId = simulation.simulation_id || simulation.id;
-        const outputs = await apiFetch(`/simulations/${simulationId}/outputs`);
-        if (outputs) {
-          simulation.outputs = outputs;
-          addConsoleMessage(`Fetched ${outputs.length} output files`, 'info');
+      // Fetch the list of output files from the API
+      const filesResponse = await apiFetch(`/api/simulations/${simulationId}/files`);
+      
+      if (filesResponse) {
+        // Handle different response formats
+        const files = Array.isArray(filesResponse) ? filesResponse : 
+                      filesResponse.files ? filesResponse.files : 
+                      filesResponse.outputs ? filesResponse.outputs : [];
+        
+        setOutputFiles(files);
+        addConsoleMessage(`Found ${files.length} output files`, 'info');
+        
+        // If there are files, log their names
+        if (files.length > 0) {
+          const fileNames = files.map(f => f.filename || f.name || f).join(', ');
+          addConsoleMessage(`Files: ${fileNames}`, 'info');
         }
       }
     } catch (error) {
+      console.error('Failed to load simulation files:', error);
       addConsoleMessage(`Failed to load simulation outputs: ${error.message}`, 'error');
+      setOutputFiles([]);
     } finally {
       setLoading(false);
     }
@@ -106,10 +116,12 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
     const filename = outputFile.filename || outputFile.name || outputFile;
     setSelectedOutputFile(filename);
     setLoading(true);
+    
     try {
-      // Try to fetch the file content from the backend
       const simulationId = selectedSimulation.simulation_id || selectedSimulation.id;
-      const response = await apiFetch(`/simulations/${simulationId}/outputs/${filename}`);
+      
+      // Fetch the specific file content
+      const response = await apiFetch(`/api/simulations/${simulationId}/files/${encodeURIComponent(filename)}`);
       
       let text;
       if (response instanceof Blob) {
@@ -125,12 +137,14 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
       if (/\.csv$/i.test(filename)) {
         const csv = await parseCSV(text, 1000);
         setOutputPreview({ type: 'csv', text: '', csv });
+        addConsoleMessage(`Loaded CSV: ${filename} (${csv.data.length} rows, columns: ${csv.yKeys.join(', ')})`, 'info');
       } else if (isTextFile(filename)) {
         setOutputPreview({ type: 'text', text, csv: null });
+        addConsoleMessage(`Loaded text file: ${filename}`, 'info');
       } else {
         setOutputPreview({ type: 'download', text: '', csv: null });
+        addConsoleMessage(`File loaded for download: ${filename}`, 'info');
       }
-      addConsoleMessage(`Loaded output: ${filename}`, 'info');
     } catch (error) {
       setOutputPreview({ type: 'none', text: '', csv: null });
       addConsoleMessage(`Failed to load output file: ${error.message}`, 'error');
@@ -139,25 +153,114 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
     }
   }, [selectedSimulation, addConsoleMessage]);
 
-  const downloadSelectedOutput = useCallback(() => {
-    if (!selectedOutputFile) return;
+  const downloadSelectedOutput = useCallback(async () => {
+    if (!selectedOutputFile || !selectedSimulation) return;
+    
     try {
+      const simulationId = selectedSimulation.simulation_id || selectedSimulation.id;
+      
+      // Fetch the file as blob for download
+      const response = await apiFetch(`/api/simulations/${simulationId}/files/${encodeURIComponent(selectedOutputFile)}`);
+      
       let blob;
-      if (outputPreview.type === 'csv') blob = new Blob([JSON.stringify(outputPreview.csv)], { type: 'application/json' });
-      else if (outputPreview.type === 'text') blob = new Blob([outputPreview.text], { type: 'text/plain' });
-      else return; // For binary files, we'd need to fetch the original
-      const url = URL.createObjectURL(blob); const a = document.createElement('a');
-      a.href = url; a.download = selectedOutputFile; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      if (response instanceof Blob) {
+        blob = response;
+      } else if (typeof response === 'string') {
+        blob = new Blob([response], { type: 'text/plain' });
+      } else {
+        blob = new Blob([JSON.stringify(response)], { type: 'application/json' });
+      }
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = selectedOutputFile;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      addConsoleMessage(`Downloaded: ${selectedOutputFile}`, 'info');
     } catch (error) {
       addConsoleMessage(`Failed to download: ${error.message}`, 'error');
     }
-  }, [outputPreview, selectedOutputFile, addConsoleMessage]);
+  }, [selectedSimulation, selectedOutputFile, addConsoleMessage]);
+
+  const downloadAllOutputs = useCallback(async () => {
+    if (!selectedSimulation) return;
+    
+    try {
+      const simulationId = selectedSimulation.simulation_id || selectedSimulation.id;
+      addConsoleMessage('Downloading all outputs as ZIP...', 'info');
+      
+      // Download the outputs.zip file
+      const response = await apiFetch(`/api/simulations/${simulationId}/outputs`);
+      
+      let blob;
+      if (response instanceof Blob) {
+        blob = response;
+      } else {
+        blob = new Blob([JSON.stringify(response)], { type: 'application/json' });
+      }
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `outputs-${simulationId}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      addConsoleMessage('Downloaded outputs.zip successfully', 'info');
+    } catch (error) {
+      addConsoleMessage(`Failed to download outputs.zip: ${error.message}`, 'error');
+    }
+  }, [selectedSimulation, addConsoleMessage]);
+
+  // Poll for simulation updates if running
+  useEffect(() => {
+    if (!selectedSimulation) return;
+    
+    const status = selectedSimulation.status;
+    if (status === 'running' || status === 'RUNNING' || status === 'pending' || status === 'PENDING') {
+      const interval = setInterval(async () => {
+        try {
+          const simulationId = selectedSimulation.simulation_id || selectedSimulation.id;
+          const updated = await apiFetch(`/api/simulations/${simulationId}`);
+          
+          if (updated.status !== status) {
+            setSelectedSimulation(updated);
+            
+            if (updated.status === 'completed' || updated.status === 'COMPLETED') {
+              // Refresh files list when simulation completes
+              handleSimulationSelect(updated);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to poll simulation status:', error);
+        }
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [selectedSimulation]);
 
   return (
     <div className="h-full flex">
       {/* Simulations List */}
       <div className="w-72 border-r border-gray-200 p-3 space-y-3">
-        <div className="text-sm font-medium text-gray-700">Simulations</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium text-gray-700">Simulations</div>
+          {selectedSimulation && (selectedSimulation.status === 'completed' || selectedSimulation.status === 'COMPLETED') && (
+            <button 
+              onClick={downloadAllOutputs}
+              className="text-xs px-2 py-1 bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <Download className="w-4 h-4 inline-block" />
+            </button>
+          )}
+        </div>
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {(!Array.isArray(simulations) || simulations.length === 0) ? (
             <div className="text-xs text-gray-500 italic">No simulations found</div>
@@ -168,11 +271,19 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
                 onClick={() => handleSimulationSelect(s)}
                 className={`p-2 border border-gray-200 cursor-pointer hover:bg-gray-50 ${(selectedSimulation?.simulation_id || selectedSimulation?.id) === (s.simulation_id || s.id) ? 'bg-blue-50 border-blue-300' : ''}`}
               >
-                <div className="text-sm font-medium">{s.simulation_id || s.id}</div>
-                <div className="text-xs text-gray-500">{new Date(s.created_at || s.timestamp || Date.now()).toLocaleString()}</div>
-                <div className={`text-xs uppercase ${s.status === 'COMPLETED' || s.status === 'completed' ? 'text-green-600' : s.status === 'FAILED' || s.status === 'failed' ? 'text-red-600' : s.status === 'RUNNING' || s.status === 'running' ? 'text-orange-600' : 'text-gray-600'}`}>
+                <div className="text-sm font-medium">{s.name || s.simulation_id || s.id}</div>
+                <div className="text-xs text-gray-500">{new Date(s.started_at || s.created_at || s.timestamp || Date.now()).toLocaleString()}</div>
+                <div className={`text-xs uppercase font-medium ${
+                  s.status === 'COMPLETED' || s.status === 'completed' ? 'text-green-600' : 
+                  s.status === 'FAILED' || s.status === 'failed' ? 'text-red-600' : 
+                  s.status === 'RUNNING' || s.status === 'running' ? 'text-orange-600' : 
+                  'text-gray-600'
+                }`}>
                   {s.status || 'pending'}
                 </div>
+                {s.duration_seconds && (
+                  <div className="text-xs text-gray-500">Duration: {s.duration_seconds}s</div>
+                )}
               </div>
             ))
           )}
@@ -186,18 +297,26 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
           <div className="w-64 border-r border-gray-200 p-3 space-y-3">
             <div className="text-sm font-medium text-gray-700">Output Files</div>
             <div className="space-y-1 max-h-96 overflow-y-auto">
-              {(!selectedSimulation.outputs || selectedSimulation.outputs.length === 0) ? (
-                <div className="text-xs text-gray-500 italic">No output files available</div>
+              {loading ? (
+                <div className="text-xs text-gray-500 italic">Loading files...</div>
+              ) : outputFiles.length === 0 ? (
+                <div className="text-xs text-gray-500 italic">
+                  {selectedSimulation.status === 'running' || selectedSimulation.status === 'RUNNING' 
+                    ? 'Simulation still running...' 
+                    : 'No output files available'}
+                </div>
               ) : (
-                selectedSimulation.outputs.map(output => {
+                outputFiles.map(output => {
                   const filename = output.filename || output.name || output;
+                  const size = output.size_bytes || output.size;
                   return (
                     <div
                       key={filename}
                       onClick={() => handleOutputFileSelect(output)}
                       className={`p-2 text-xs border border-gray-200 cursor-pointer hover:bg-gray-50 ${selectedOutputFile === filename ? 'bg-blue-50 border-blue-300' : ''}`}
                     >
-                      {filename}
+                      <div className="font-medium">{filename}</div>
+                      {size && <div className="text-gray-500">Size: {(size / 1024).toFixed(2)} KB</div>}
                     </div>
                   );
                 })
@@ -224,7 +343,9 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
             <div className="h-full flex flex-col">
               <div className="px-4 py-2 border-b border-gray-200 text-sm font-medium flex items-center justify-between">
                 <span>{selectedOutputFile}</span>
-                <button className="px-2 py-1 text-xs border border-gray-300" onClick={downloadSelectedOutput}>Download</button>
+                <button className="px-2 py-1 text-xs border border-gray-300 hover:bg-gray-50" onClick={downloadSelectedOutput}>
+                  Download
+                </button>
               </div>
               <div className="p-4 h-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -234,7 +355,7 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
                     <Legend />
-                    {(outputPreview.csv.yKeys || []).slice(0, 3).map((k, idx) => (
+                    {(outputPreview.csv.yKeys || []).map((k, idx) => (
                       <Line key={k} type="monotone" dataKey={k} stroke={["#2563eb","#16a34a","#f59e0b"][idx%3]} dot={false} strokeWidth={1.8} />
                     ))}
                   </LineChart>
@@ -245,14 +366,19 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
             <div className="h-full flex flex-col">
               <div className="px-4 py-2 border-b border-gray-200 text-sm font-medium flex items-center justify-between">
                 <span>{selectedOutputFile}</span>
-                <button className="px-2 py-1 text-xs border border-gray-300" onClick={downloadSelectedOutput}>Download</button>
+                <button className="px-2 py-1 text-xs border border-gray-300 hover:bg-gray-50" onClick={downloadSelectedOutput}>
+                  Download
+                </button>
               </div>
-              <pre className="p-4 text-xs overflow-auto whitespace-pre-wrap">{outputPreview.text}</pre>
+              <pre className="p-4 text-xs overflow-auto whitespace-pre-wrap flex-1">{outputPreview.text}</pre>
             </div>
           ) : outputPreview.type === 'download' ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-sm">
-                Preview not available. <button className="text-blue-600 underline" onClick={downloadSelectedOutput}>Download file</button>
+                Preview not available. 
+                <button className="text-blue-600 underline ml-2" onClick={downloadSelectedOutput}>
+                  Download file
+                </button>
               </div>
             </div>
           ) : (
