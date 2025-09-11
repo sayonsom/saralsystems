@@ -11,7 +11,7 @@ export default function ProjectsHeader({ title, planLabel = "free", onUpgrade })
           <span className="text-sm text-gray-600">
             You're on the <span className="font-semibold">{planLabel} plan</span>
           </span>
-          <button onClick={onUpgrade} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+          <button onClick={onUpgrade} className="bg-orange-600 text-white px-4 py-2 text-sm font-medium hover:bg-orange-700 transition-colors">
             Upgrade
           </button>
         </div>

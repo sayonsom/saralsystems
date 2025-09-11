@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 function StatusBadge({ status, lastModified }) {
   const map = {
     running: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Running" },
-    success: { bg: "bg-green-100", text: "text-green-800", label: "Success" },
+    success: { bg: "bg-orange-100", text: "text-orange-800", label: "Success" },
     failed: { bg: "bg-red-100", text: "text-red-800", label: "Failed" },
   };
   const cfg = map[status] || map.success;

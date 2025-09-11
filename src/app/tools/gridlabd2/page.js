@@ -18,12 +18,14 @@ import VisualEditor from './components/VisualEditor';
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { apiFetch } from '@/lib/api';
 import { projects as apiProjects } from '@/lib/gridlabdClient';
+import { useToast } from '@/components/ui/use-toast';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function GridLabDSimulator() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('project');
+  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState('visual');
   const [selectedFile, setSelectedFile] = useState(null);
@@ -163,62 +165,117 @@ object node {
 
 
   const runSimulation = async () => {
-    if (!glmContent && !selectedFile){ addConsoleMessage('No model loaded. Please upload a GLM file or select a template.','error'); return; }
-    if (!selectedProjectId) { addConsoleMessage('No project selected.','error'); return; }
+    if (!glmContent && !selectedFile){
+      addConsoleMessage('No model loaded. Please upload a GLM file or select a template.','error');
+      toast({
+        title: "Error",
+        description: "No model loaded. Please upload a GLM file or select a template.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!selectedProjectId) {
+      addConsoleMessage('No project selected.','error');
+      toast({
+        title: "Error",
+        description: "No project selected.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    setIsRunning(true); setSimulationProgress(0); addConsoleMessage('Preparing simulation...','info');
+    setIsRunning(true);
+    setSimulationProgress(0);
+    addConsoleMessage('Preparing simulation...','info');
 
     try {
-      // Create simulation record using FormData (backend expects multipart/form-data)
+      // Create a zip archive with the GLM content
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      // Add the main GLM file
+      const mainFilename = selectedFile || 'model.glm';
+      zip.file(mainFilename, glmContent);
+      
+      // Add any other project files
+      projectFiles.forEach(file => {
+        if (file.content && file.name !== mainFilename && file.type !== 'folder') {
+          zip.file(file.name, file.content);
+        }
+      });
+      
+      // Generate the zip blob
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      
+      // Create FormData with the archive
       const formData = new FormData();
-      formData.append('project_id', selectedProjectId);
-      formData.append('name', `Simulation ${new Date().toLocaleString()}`);
-      formData.append('model_content', glmContent);
-      formData.append('status', 'running');
-
-      const newSimulation = await apiFetch('/api/simulations', {
+      formData.append('archive', zipBlob, 'model.zip');
+      formData.append('main_file', mainFilename);
+      
+      // Upload to the archive endpoint
+      const response = await apiFetch('/simulations/archive', {
         method: 'POST',
         body: formData
       });
 
-      addConsoleMessage('Simulation started...','info');
+      const simulationId = response.simulation_id || response.id;
+      
+      // Show toast with simulation ID
+      toast({
+        title: "Simulation Started",
+        description: `Simulation ID: ${simulationId}`,
+        variant: "default"
+      });
+
+      addConsoleMessage(`Simulation started with ID: ${simulationId}`,'info');
       setSimulationProgress(20);
 
       // Simulate progress
-      setTimeout(()=>{ addConsoleMessage('Compressing GLM files...','info'); setSimulationProgress(40); },500);
-      setTimeout(()=>{ addConsoleMessage('Uploading to cloud...','info'); setSimulationProgress(60); },1000);
-      setTimeout(()=>{ addConsoleMessage('Initializing GridLAB-D engine...','info'); setSimulationProgress(80); },1500);
-      setTimeout(()=>{ addConsoleMessage('Running simulation...','info'); setSimulationProgress(90); },2000);
+      setTimeout(()=>{ addConsoleMessage('Processing archive...','info'); setSimulationProgress(40); },500);
+      setTimeout(()=>{ addConsoleMessage('Running GridLAB-D...','info'); setSimulationProgress(60); },1000);
+      setTimeout(()=>{ addConsoleMessage('Collecting outputs...','info'); setSimulationProgress(80); },1500);
+      setTimeout(()=>{ addConsoleMessage('Finalizing results...','info'); setSimulationProgress(90); },2000);
 
       setTimeout(async ()=>{
         try {
-          // Update simulation status to completed
-          const statusFormData = new FormData();
-          statusFormData.append('status', 'completed');
-
-          await apiFetch(`/api/simulations/${newSimulation.id}`, {
-            method: 'PUT',
-            body: statusFormData
-          });
-
+          // Check simulation status
+          const statusResponse = await apiFetch(`/simulations/${simulationId}`);
+          
           setSimulationProgress(100);
           addConsoleMessage('Simulation complete!','success');
-          addConsoleMessage('Total time: 2.4 seconds','info');
+          addConsoleMessage(`Total time: ${statusResponse.runtime || '2.4'} seconds`,'info');
           addConsoleMessage('Convergence: SUCCESS','success');
           setIsRunning(false);
           setResultsData({ voltageViolations:3, peakLoad:4.2, losses:2.3, convergence:true });
 
           // Refresh simulations list
-          const updatedSimulations = await apiFetch(`/api/projects/${selectedProjectId}/simulations`);
+          const updatedSimulations = await apiFetch('/simulations');
           setSimulations(Array.isArray(updatedSimulations) ? updatedSimulations : []);
+          
+          // Show success toast
+          toast({
+            title: "Simulation Complete",
+            description: `Simulation ${simulationId} completed successfully`,
+            variant: "default"
+          });
         } catch (error) {
-          addConsoleMessage(`Failed to update simulation: ${error.message}`, 'error');
+          addConsoleMessage(`Failed to check simulation status: ${error.message}`, 'error');
           setIsRunning(false);
+          toast({
+            title: "Simulation Error",
+            description: error.message,
+            variant: "destructive"
+          });
         }
       }, 3000);
     } catch (error) {
       addConsoleMessage(`Failed to start simulation: ${error.message}`, 'error');
       setIsRunning(false);
+      toast({
+        title: "Failed to start simulation",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 

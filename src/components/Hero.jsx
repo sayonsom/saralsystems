@@ -53,13 +53,13 @@ export default function Hero() {
       <div className="relative z-20 w-full text-center">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-gray-900">
-            AI Platform for Energy
+            AI Platform for{" "}
+            <span className="whitespace-nowrap">
+              Energy{" "}
+              <span className="text-orange-600">{text}</span>
+              <span className="inline-block w-[0.08em] h-[1em] align-[-0.15em] bg-orange-600 ml-1 animate-pulse"></span>
+            </span>
           </h1>
-
-          <p className="max-w-3xl mx-auto text-xl md:text-2xl text-gray-800 mb-8 font-mono">
-            <span className="text-orange-600 font-semibold">{text}</span>
-            <span className="inline-block w-0.5 h-6 md:h-7 align-[-3px] bg-orange-600 ml-1 animate-pulse"></span>
-          </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
