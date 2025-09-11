@@ -87,9 +87,10 @@ export default function GridLabDSimulator() {
     const fetchSimulations = async () => {
       try {
         const data = await apiFetch(`/api/projects/${selectedProjectId}/simulations`);
-        setSimulations(data);
+        setSimulations(Array.isArray(data) ? data : []);
       } catch (error) {
         addConsoleMessage(`Failed to fetch simulations: ${error.message}`, 'error');
+        setSimulations([]);
       }
     };
     fetchSimulations();
@@ -209,7 +210,7 @@ object node {
 
           // Refresh simulations list
           const updatedSimulations = await apiFetch(`/api/projects/${selectedProjectId}/simulations`);
-          setSimulations(updatedSimulations);
+          setSimulations(Array.isArray(updatedSimulations) ? updatedSimulations : []);
         } catch (error) {
           addConsoleMessage(`Failed to update simulation: ${error.message}`, 'error');
           setIsRunning(false);
@@ -417,8 +418,11 @@ object node {
         // Refresh simulations list
         if (selectedProjectId) {
           apiFetch(`/api/projects/${selectedProjectId}/simulations`)
-            .then(data => setSimulations(data))
-            .catch(error => addConsoleMessage(`Failed to refresh simulations: ${error.message}`, 'error'));
+            .then(data => setSimulations(Array.isArray(data) ? data : []))
+            .catch(error => {
+              addConsoleMessage(`Failed to refresh simulations: ${error.message}`, 'error');
+              setSimulations([]);
+            });
         }
       }, 3200);
 

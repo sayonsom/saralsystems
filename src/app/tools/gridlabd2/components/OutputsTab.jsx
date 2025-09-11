@@ -135,7 +135,7 @@ export default function OutputsTab({ simulations = [], selectedProjectId, addCon
       <div className="w-72 border-r border-gray-200 p-3 space-y-3">
         <div className="text-sm font-medium text-gray-700">Simulations</div>
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {simulations.length === 0 ? (
+          {(!Array.isArray(simulations) || simulations.length === 0) ? (
             <div className="text-xs text-gray-500 italic">No simulations found</div>
           ) : (
             simulations.map(s => (

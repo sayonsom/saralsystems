@@ -25,7 +25,7 @@ export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete,
     return arr.filter((p) => (p?.name || "").toLowerCase().includes(q));
   }, [projects, search]);
 
-  if (!filtered.length) {
+  if (!Array.isArray(filtered) || !filtered.length) {
     return (
       <div className="text-center py-10 text-gray-500">
         No projects matched your search.
