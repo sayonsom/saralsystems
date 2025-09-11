@@ -1,20 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 
 export function useToast() {
-  const [toasts, setToasts] = useState([]);
-  
-  const toast = useCallback(({ title, description, variant = 'default' }) => {
-    // For now, just log to console
-    // In a real implementation, this would show a toast notification
-    console.log(`Toast: ${title} - ${description}`);
-    
-    // You could implement a simple alert as a placeholder
+  const toast = useCallback(({ title, description, variant = 'default', duration = 4000 }) => {
     if (typeof window !== 'undefined') {
-      alert(`${title}${description ? '\n' + description : ''}`);
+      window.dispatchEvent(new CustomEvent('app:toast', { detail: { title, description, variant, duration } }));
+    } else {
+      // SSR fallback
+      console.log(`Toast: ${title} - ${description}`);
     }
   }, []);
-  
   return { toast };
 }

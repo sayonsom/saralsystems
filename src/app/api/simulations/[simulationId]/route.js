@@ -18,6 +18,39 @@ export async function GET(req, { params }) {
   return new NextResponse(text, { status: upstream.status });
 }
 
+export async function PUT(req, { params }) {
+  const { simulationId } = await params;
+  const contentType = req.headers.get("content-type") || "";
+
+  let body;
+  let headers = {};
+
+  if (contentType.includes("multipart/form-data")) {
+    // Handle FormData
+    const formData = await req.formData();
+    body = formData;
+    // Don't set content-type header for FormData - let fetch set it automatically
+  } else {
+    // Handle JSON
+    body = await req.json();
+    headers = { ...headers, "content-type": "application/json" };
+    body = JSON.stringify(body);
+  }
+
+  const auth = req.headers.get("authorization");
+  if (auth) headers.Authorization = auth;
+
+  const url = `${BASE_URL}/api/simulations/${simulationId}`;
+  const upstream = await fetch(url, { method: "PUT", headers, body });
+  const ct = upstream.headers.get("content-type") || "";
+  if (ct.includes("application/json")) {
+    const data = await upstream.json();
+    return NextResponse.json(data, { status: upstream.status });
+  }
+  const text = await upstream.text();
+  return new NextResponse(text, { status: upstream.status });
+}
+
 export async function DELETE(req, { params }) {
   const { simulationId } = await params;
   const url = `${BASE_URL}/api/simulations/${simulationId}`;

@@ -9,6 +9,7 @@ import { Home, Factory, Sun, Wind, Battery, Car, Gauge, RadioTower, Server, Zap,
 // Node palette definition (icons replaced with existing ones)
 const PALETTE = [
   { type: 'substation', label: 'Substation', icon: Server },
+  { type: 'feederBus', label: 'Feeder Bus', icon: RadioTower },
   { type: 'transformer', label: 'Transformer', icon: Zap },
   { type: 'meter', label: 'Meter', icon: Gauge },
   { type: 'load', label: 'Load', icon: Plug },
@@ -20,6 +21,41 @@ const PALETTE = [
   { type: 'ev', label: 'EV', icon: Car },
   { type: 'storage', label: 'Storage', icon: Battery }
 ];
+
+// Feeder edge component - represents main power distribution lines
+function FeederEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, data = {} }) {
+  // Create step path for feeders (right angles like power system diagrams)
+  let edgePath;
+  if (data.isFeeder) {
+    const midX = sourceX + (targetX - sourceX) * 0.5;
+    edgePath = `M${sourceX},${sourceY} L${midX},${sourceY} L${midX},${targetY} L${targetX},${targetY}`;
+  } else {
+    edgePath = `M${sourceX},${sourceY} L${targetX},${targetY}`;
+  }
+  
+  return (
+    <>
+      <path
+        id={id}
+        style={{
+          ...style,
+          stroke: data.isFeeder ? '#dc2626' : style.stroke || '#475569',
+          strokeWidth: data.isFeeder ? 6 : style.strokeWidth || 2,
+          strokeLinecap: 'round'
+        }}
+        className="react-flow__edge-path"
+        d={edgePath}
+      />
+      {data.isFeeder && (
+        <text>
+          <textPath href={`#${id}`} startOffset="25%" textAnchor="middle" className="fill-red-600 text-xs font-semibold">
+            {data.name || 'Feeder'}
+          </textPath>
+        </text>
+      )}
+    </>
+  );
+}
 
 let id = 0;
 const getId = () => `n_${id++}`;
@@ -35,7 +71,8 @@ const typeColor = {
   solar: 'bg-yellow-500 text-black',
   wind: 'bg-sky-600',
   ev: 'bg-green-600',
-  storage: 'bg-zinc-700'
+  storage: 'bg-zinc-700',
+  feederBus: 'bg-red-600'
 };
 
 function DefaultNode({ id, data }) {
@@ -85,7 +122,67 @@ function DefaultNode({ id, data }) {
   );
 }
 
-const nodeTypes = { default: DefaultNode };
+// Feeder Bus Node - represents points along a feeder line
+function FeederBusNode({ id, data }) {
+  const rf = useReactFlow();
+  const [value, setValue] = useState(data.label);
+  
+  useEffect(() => { setValue(data.label); }, [data.label]);
+  
+  const commit = (val) => {
+    rf.setNodes(ns => ns.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n));
+  };
+
+  const edges = rf.getEdges();
+  const usedHandles = new Set();
+  edges.forEach(e => { 
+    if (e.source === id && e.sourceHandle) usedHandles.add(e.sourceHandle); 
+    if (e.target === id && e.targetHandle) usedHandles.add(e.targetHandle); 
+  });
+
+  const handleClass = (hid) => usedHandles.has(hid)
+    ? 'w-2 h-2 !bg-gray-300 border border-gray-300 rounded-full opacity-50'
+    : 'w-2 h-2 !bg-white border border-red-500 rounded-full cursor-crosshair shadow';
+
+  return (
+    <div className="relative flex flex-col items-center text-[10px] select-none" title={value}>
+      {/* Feeder bus handles - more prominent for main feeder connections */}
+      <Handle id="t-target" type="target" position={Position.Top} className={`-mt-2 ${handleClass('t-target')}`} />
+      <Handle id="t-source" type="source" position={Position.Top} className={`-mt-2 ml-3 ${handleClass('t-source')}`} />
+      <Handle id="l-target" type="target" position={Position.Left} className={`-ml-2 ${handleClass('l-target')}`} />
+      <Handle id="l-source" type="source" position={Position.Left} className={`-ml-2 mt-3 ${handleClass('l-source')}`} />
+      
+      {/* Feeder bus representation - red circle */}
+      <div className="w-3 h-3 rounded-full bg-red-600 border-2 border-white shadow-md flex items-center justify-center">
+        <div className="w-1 h-1 bg-white rounded-full"></div>
+      </div>
+      
+      <Handle id="r-target" type="target" position={Position.Right} className={`-mr-2 ${handleClass('r-target')}`} />
+      <Handle id="r-source" type="source" position={Position.Right} className={`-mr-2 mt-3 ${handleClass('r-source')}`} />
+      <Handle id="b-target" type="target" position={Position.Bottom} className={`-mb-2 ${handleClass('b-target')}`} />
+      <Handle id="b-source" type="source" position={Position.Bottom} className={`-mb-2 ml-3 ${handleClass('b-source')}`} />
+      
+      <input
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onBlur={e => commit(e.target.value.trim() || value)}
+        onKeyDown={e => { if(e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }}}
+        className="mt-1 w-12 bg-transparent text-[8px] font-medium text-center text-red-700 border border-transparent focus:border-red-500 focus:outline-none rounded-sm px-0.5"
+        spellCheck={false}
+      />
+    </div>
+  );
+}
+
+const nodeTypes = { 
+  default: DefaultNode,
+  feederBus: FeederBusNode 
+};
+const edgeTypes = { 
+  default: FeederEdge, 
+  feeder: FeederEdge,
+  step: FeederEdge
+};
 
 export default function VisualEditor({ onSelectNode }) {
   const initialNodes = [
@@ -97,6 +194,9 @@ export default function VisualEditor({ onSelectNode }) {
   const [selectedEdge, setSelectedEdge] = useState(null);
   const [edgeCounter, setEdgeCounter] = useState(1);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [feederMode, setFeederMode] = useState(false);
+  const [feederExtensionMode, setFeederExtensionMode] = useState(false);
+  const [lastFeederNode, setLastFeederNode] = useState(null);
 
   // helper to update node data
   const updateNodeData = useCallback((id, newData) => {
@@ -110,48 +210,152 @@ export default function VisualEditor({ onSelectNode }) {
       const newEdge = {
         id: `e_${Date.now()}_${Math.random().toString(36).slice(2)}`,
         ...params,
-        type: 'step',
+        type: feederMode ? 'feeder' : 'step',
         data: {
-          name: `line_${edgeCounter}`,
+          name: feederMode ? `feeder_${edgeCounter}` : `line_${edgeCounter}`,
           phases: 'ABCN',
           configuration: '',
-            from: sourceNode?.data?.label || params.source,
-            to: targetNode?.data?.label || params.target,
-            length: 100
+          from: sourceNode?.data?.label || params.source,
+          to: targetNode?.data?.label || params.target,
+          length: 100,
+          isFeeder: feederMode,
+          voltage_level: feederMode ? 'Medium' : 'Low',
+          conductor_type: feederMode ? 'ACSR' : 'Copper'
         },
-        style: { stroke: '#475569', strokeWidth: 2 }
+        style: { 
+          stroke: feederMode ? '#dc2626' : '#475569', 
+          strokeWidth: feederMode ? 6 : 2,
+          strokeLinecap: 'round'
+        }
       };
       setEdgeCounter(c=>c+1);
       return addEdge(newEdge, eds);
     });
-  }, [nodes, edgeCounter]);
+  }, [nodes, edgeCounter, feederMode]);
 
   const handlePaneClick = useCallback((e) => {
-    if (activeTool) {
+    if (feederExtensionMode && lastFeederNode) {
+      // Extend feeder: create a new feeder bus node and connect it
+      const bounds = e.currentTarget.getBoundingClientRect();
+      const position = { x: e.clientX - bounds.left - 80, y: e.clientY - bounds.top };
+      const newBusId = getId();
+      
+      // Create new feeder bus node
+      setNodes(nds => nds.concat({ 
+        id: newBusId, 
+        type: 'feederBus', 
+        position, 
+        data: { 
+          label: `Bus${Math.floor(Math.random() * 900) + 100}`, 
+          type: 'feederBus',
+          bustype: 'PQ',
+          phases: 'ABCN',
+          nominal_voltage: 7200
+        } 
+      }));
+      
+      // Create feeder connection to the last feeder node
+      setEdges(eds => addEdge({
+        id: `e_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        source: lastFeederNode,
+        target: newBusId,
+        sourceHandle: 'r-source',
+        targetHandle: 'l-target',
+        type: 'feeder',
+        data: {
+          name: `feeder_${edgeCounter}`,
+          phases: 'ABCN',
+          configuration: '',
+          from: nodes.find(n => n.id === lastFeederNode)?.data?.label || lastFeederNode,
+          to: `Bus${Math.floor(Math.random() * 900) + 100}`,
+          length: Math.sqrt(Math.pow(position.x - (nodes.find(n => n.id === lastFeederNode)?.position?.x || 0), 2) + 
+                          Math.pow(position.y - (nodes.find(n => n.id === lastFeederNode)?.position?.y || 0), 2)) || 100,
+          isFeeder: true,
+          voltage_level: 'Medium',
+          conductor_type: 'ACSR'
+        },
+        style: { stroke: '#dc2626', strokeWidth: 6, strokeLinecap: 'round' }
+      }, eds));
+      
+      setEdgeCounter(c => c + 1);
+      setLastFeederNode(newBusId);
+      
+    } else if (activeTool) {
       const bounds = e.currentTarget.getBoundingClientRect();
       const position = { x: e.clientX - bounds.left - 80, y: e.clientY - bounds.top };
       const paletteItem = PALETTE.find(p => p.type === activeTool);
-      setNodes(nds => nds.concat({ id: getId(), type: 'default', position, data: { label: paletteItem.label, type: paletteItem.type, bustype: 'PQ', phases: 'ABCN', nominal_voltage: 7200, ...(paletteItem.type==='load'?{ real_power:0, reactive_power:0, power_factor:1.0, load_class:'Residential' }:{}), ...(paletteItem.type==='meter'?{ meter_class:'revenue', interval:60 }:{}) } }));
+      const nodeType = activeTool === 'feederBus' ? 'feederBus' : 'default';
+      setNodes(nds => nds.concat({ 
+        id: getId(), 
+        type: nodeType, 
+        position, 
+        data: { 
+          label: paletteItem.label, 
+          type: paletteItem.type, 
+          bustype: 'PQ', 
+          phases: 'ABCN', 
+          nominal_voltage: 7200, 
+          ...(paletteItem.type==='load'?{ real_power:0, reactive_power:0, power_factor:1.0, load_class:'Residential' }:{}), 
+          ...(paletteItem.type==='meter'?{ meter_class:'revenue', interval:60 }:{}) 
+        } 
+      }));
       setActiveTool(null);
     } else {
       setSelectedNode(null);
+      setSelectedEdge(null);
+      setLastFeederNode(null);
+      setFeederExtensionMode(false);
       onSelectNode?.(null);
     }
-  }, [activeTool, onSelectNode, setNodes]);
+  }, [activeTool, feederExtensionMode, lastFeederNode, nodes, edgeCounter, onSelectNode, setNodes, setEdges]);
 
-  // Allow ESC to unselect active tool
+  // Allow ESC to unselect active tool or feeder mode
   useEffect(() => {
-    const escHandler = (e) => { if (e.key === 'Escape') setActiveTool(null); };
+    const escHandler = (e) => { 
+      if (e.key === 'Escape') {
+        setActiveTool(null);
+        setFeederMode(false);
+        setFeederExtensionMode(false);
+        setLastFeederNode(null);
+      }
+    };
     window.addEventListener('keydown', escHandler);
     return () => window.removeEventListener('keydown', escHandler);
   }, []);
 
-  const onNodeClick = useCallback((_, node) => { setSelectedNode(node.id); setSelectedEdge(null); onSelectNode?.(node); }, [onSelectNode]);
+  const onNodeClick = useCallback((_, node) => { 
+    if (feederExtensionMode) {
+      // Set this node as the starting point for feeder extension
+      setLastFeederNode(node.id);
+    } else {
+      setSelectedNode(node.id); 
+      setSelectedEdge(null); 
+      onSelectNode?.(node);
+    }
+  }, [onSelectNode, feederExtensionMode]);
   const onEdgeClick = useCallback((_, edge) => { setSelectedEdge(edge); }, []);
 
   const updateEdgeData = (key, value) => {
-    setEdges(es => es.map(e => e.id === selectedEdge.id ? { ...e, data: { ...e.data, [key]: value } } : e));
-    setSelectedEdge(se => se ? { ...se, data: { ...se.data, [key]: value } } : se);
+    setEdges(es => es.map(e => e.id === selectedEdge.id ? { 
+      ...e, 
+      data: { ...e.data, [key]: value },
+      // Update visual style if changing feeder status
+      style: key === 'isFeeder' ? {
+        ...e.style,
+        stroke: value ? '#dc2626' : '#475569',
+        strokeWidth: value ? 6 : 2
+      } : e.style,
+      type: key === 'isFeeder' ? (value ? 'feeder' : 'step') : e.type
+    } : e));
+    setSelectedEdge(se => se ? { 
+      ...se, 
+      data: { ...se.data, [key]: value },
+      style: key === 'isFeeder' ? {
+        ...se.style,
+        stroke: value ? '#dc2626' : '#475569',
+        strokeWidth: value ? 6 : 2
+      } : se.style
+    } : se);
   };
 
   // Keep from/to in sync with node label changes
@@ -173,7 +377,7 @@ export default function VisualEditor({ onSelectNode }) {
     setEdges(es => es.map(e => e.id === selectedEdge?.id ? { ...e, style: { ...(e.style||{}), stroke: '#ea580b', strokeWidth: 3 } } : { ...e, style: { ...(e.style||{}), stroke: e.style?.stroke === '#ea580b' ? '#475569' : e.style?.stroke || '#475569', strokeWidth: 2 } }));
   }, [selectedEdge, setEdges]);
 
-  const defaultEdgeOptions = { type: 'step', style: { stroke: '#475569', strokeWidth: 2 } };
+  const defaultEdgeOptions = { type: 'step', style: { stroke: '#475569', strokeWidth: 2, strokeLinecap: 'round' } };
 
   const exportLayout = () => {
     const data = { nodes: nodes.map(n=>({ ...n, selected: undefined, dragging: undefined })), edges };
@@ -209,12 +413,72 @@ export default function VisualEditor({ onSelectNode }) {
             );
           })}
         </div>
-        <div className="flex gap-2 pt-1">
-          <button onClick={() => { setNodes([{ id: getId(), type: 'default', position: { x:0, y:0 }, data: { label: 'Substation', type: 'substation', bustype: 'SWING', phases: 'ABCN', nominal_voltage: 7200 } }]); setEdges([]); setActiveTool(null); setSelectedEdge(null); }} className="flex-1 text-[10px] py-1 border border-gray-300 hover:bg-gray-50 rounded">Reset</button>
-          <button onClick={() => { setNodes([]); setEdges([]); setActiveTool(null); setSelectedEdge(null); }} className="flex-1 text-[10px] py-1 border border-gray-300 hover:bg-gray-50 rounded">Clear</button>
+        <div className="border-t pt-2 mt-2">
+          <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Feeder Tools</div>
+          
+          <button 
+            onClick={() => {
+              setFeederExtensionMode(!feederExtensionMode);
+              if (!feederExtensionMode) {
+                setFeederMode(false);
+                setActiveTool(null);
+              }
+            }}
+            className={`w-full text-[10px] py-2 border rounded transition mb-2 ${feederExtensionMode ? 'border-blue-600 bg-blue-100 text-blue-700' : 'border-gray-300 hover:bg-gray-50'}`}
+            title={feederExtensionMode ? 'Click node then canvas to extend feeder' : 'Enable feeder extension mode'}
+          >
+            {feederExtensionMode ? '🔵 Extend Feeder Mode' : '⚡ Extend Feeder'}
+          </button>
+          
+          <button 
+            onClick={() => {
+              setFeederMode(!feederMode);
+              if (!feederMode) {
+                setFeederExtensionMode(false);
+                setLastFeederNode(null);
+              }
+            }}
+            className={`w-full text-[10px] py-2 border rounded transition ${feederMode ? 'border-red-600 bg-red-100 text-red-700' : 'border-gray-300 hover:bg-gray-50'}`}
+            title={feederMode ? 'Click to disable feeder mode' : 'Click to enable feeder mode - creates thick red feeder lines'}
+          >
+            {feederMode ? '🔴 Feeder Mode ON' : '⚪ Normal Lines'}
+          </button>
+          
+          <p className="text-[9px] text-gray-500 mt-1">
+            {feederExtensionMode 
+              ? 'Click a node, then click canvas to extend feeder'
+              : feederMode 
+                ? 'Connections will create thick red feeder lines' 
+                : 'Connections will create normal distribution lines'
+            }
+          </p>
+        </div>
+        <div className="flex gap-2 pt-2">
+          <button onClick={() => { setNodes([{ id: getId(), type: 'default', position: { x:0, y:0 }, data: { label: 'Substation', type: 'substation', bustype: 'SWING', phases: 'ABCN', nominal_voltage: 7200 } }]); setEdges([]); setActiveTool(null); setSelectedEdge(null); setFeederMode(false); setFeederExtensionMode(false); setLastFeederNode(null); }} className="flex-1 text-[10px] py-1 border border-gray-300 hover:bg-gray-50 rounded">Reset</button>
+          <button onClick={() => { setNodes([]); setEdges([]); setActiveTool(null); setSelectedEdge(null); setFeederMode(false); setFeederExtensionMode(false); setLastFeederNode(null); }} className="flex-1 text-[10px] py-1 border border-gray-300 hover:bg-gray-50 rounded">Clear</button>
         </div>
         <div className="flex gap-2">
           <button onClick={exportLayout} className="flex-1 text-[10px] py-1 border border-gray-300 hover:bg-gray-50 rounded">Save JSON</button>
+        </div>
+        
+        <div className="border-t pt-2 mt-2">
+          <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Quick Start</div>
+          <button 
+            onClick={() => {
+              // Find substation node
+              const substationNode = nodes.find(n => n.data.type === 'substation');
+              if (substationNode) {
+                setLastFeederNode(substationNode.id);
+                setFeederExtensionMode(true);
+                setFeederMode(false);
+                setActiveTool(null);
+              }
+            }}
+            className="w-full text-[10px] py-1 border border-green-300 text-green-700 hover:bg-green-50 rounded"
+            disabled={!nodes.find(n => n.data.type === 'substation')}
+          >
+            ⚡ Start Feeder from Substation
+          </button>
         </div>
         {selectedNode && (
           <div className="mt-2 border-t pt-2">
@@ -302,6 +566,16 @@ export default function VisualEditor({ onSelectNode }) {
                 <label className="block text-[9px] text-gray-500">Name</label>
                 <input value={selectedEdge.data?.name || ''} onChange={e=>updateEdgeData('name', e.target.value)} className="w-full border border-gray-300 focus:border-orange-500 outline-none px-1 py-0.5 text-[9px] rounded" />
               </div>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="isFeeder" 
+                  checked={selectedEdge.data?.isFeeder || false} 
+                  onChange={e=>updateEdgeData('isFeeder', e.target.checked)}
+                  className="w-3 h-3"
+                />
+                <label htmlFor="isFeeder" className="text-[9px] text-gray-700 font-medium">Main Feeder Line</label>
+              </div>
               <div className="flex gap-1">
                 <div className="flex-1">
                   <label className="block text-[9px] text-gray-500">Phases</label>
@@ -310,6 +584,24 @@ export default function VisualEditor({ onSelectNode }) {
                 <div className="flex-1">
                   <label className="block text-[9px] text-gray-500">Config</label>
                   <input value={selectedEdge.data?.configuration || ''} onChange={e=>updateEdgeData('configuration', e.target.value)} className="w-full border border-gray-300 focus:border-orange-500 outline-none px-1 py-0.5 text-[9px] rounded" />
+                </div>
+              </div>
+              <div className="flex gap-1">
+                <div className="flex-1">
+                  <label className="block text-[9px] text-gray-500">Voltage Level</label>
+                  <select value={selectedEdge.data?.voltage_level || 'Low'} onChange={e=>updateEdgeData('voltage_level', e.target.value)} className="w-full border border-gray-300 focus:border-orange-500 outline-none px-1 py-0.5 text-[9px] rounded">
+                    <option value="Low">Low (LV)</option>
+                    <option value="Medium">Medium (MV)</option>
+                    <option value="High">High (HV)</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[9px] text-gray-500">Conductor</label>
+                  <select value={selectedEdge.data?.conductor_type || 'Copper'} onChange={e=>updateEdgeData('conductor_type', e.target.value)} className="w-full border border-gray-300 focus:border-orange-500 outline-none px-1 py-0.5 text-[9px] rounded">
+                    <option value="Copper">Copper</option>
+                    <option value="ACSR">ACSR</option>
+                    <option value="Aluminum">Aluminum</option>
+                  </select>
                 </div>
               </div>
               <div className="flex gap-1">
@@ -323,7 +615,7 @@ export default function VisualEditor({ onSelectNode }) {
                 </div>
               </div>
               <div>
-                <label className="block text-[9px] text-gray-500">Length</label>
+                <label className="block text-[9px] text-gray-500">Length (feet)</label>
                 <input type="number" value={selectedEdge.data?.length ?? 0} onChange={e=>updateEdgeData('length', Number(e.target.value))} className="w-full border border-gray-300 focus:border-orange-500 outline-none px-1 py-0.5 text-[9px] rounded" />
               </div>
               <div className="flex gap-1 pt-1">
@@ -335,10 +627,15 @@ export default function VisualEditor({ onSelectNode }) {
         )}
         <div className="pt-2 text-[10px] text-gray-500 space-y-1">
           <p>Place nodes, connect with handles (unused handles highlighted).</p>
-          <p>Click edge to edit properties.</p>
-          <p>ESC cancels active tool.</p>
+          <p><strong>Extend Feeder:</strong> Click node → click canvas to extend.</p>
+          <p><strong>Feeder Mode:</strong> Creates thick red main distribution lines.</p>
+          <p>Click edge to edit properties or convert to feeder.</p>
+          <p>ESC cancels all active modes.</p>
         </div>
         {activeTool && <div className="text-[10px] text-orange-600 font-medium">Active: {activeTool}</div>}
+        {feederMode && <div className="text-[10px] text-red-600 font-medium">🔴 Feeder Mode Active</div>}
+        {feederExtensionMode && <div className="text-[10px] text-blue-600 font-medium">🔵 Feeder Extension Mode</div>}
+        {lastFeederNode && <div className="text-[9px] text-blue-500">Selected: {nodes.find(n => n.id === lastFeederNode)?.data?.label || 'Node'}</div>}
       </div>
       <div className="flex-1 relative">
         <ReactFlow
@@ -352,6 +649,7 @@ export default function VisualEditor({ onSelectNode }) {
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           snapToGrid
           snapGrid={[16,16]}

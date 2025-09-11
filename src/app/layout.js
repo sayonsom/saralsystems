@@ -5,6 +5,7 @@ import CookieConsent from "@/components/CookieConsent";
 import RouteTracker from "@/components/RouteTracker";
 import { Suspense } from "react";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import ToastContainer from '@/components/ui/ToastContainer';
 
 const sen = Sen({
   variable: "--font-sen",
@@ -100,6 +101,7 @@ export default function RootLayout({ children }) {
         <AuthContextProvider>
           {children}
         </AuthContextProvider>
+        <ToastContainer />
         {/* Cookie consent banner and simple route tracking cookies */}
         <CookieConsent />
         <Suspense fallback={null}>

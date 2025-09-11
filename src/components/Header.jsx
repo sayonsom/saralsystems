@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, User, LogOut, Settings } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginModal from "./LoginModal";
@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import SearchModal from "./SearchModal";
 import { usePathname } from "next/navigation";
 
-export default function Header() {
+export default function Header({ pageTitle }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -23,7 +23,6 @@ export default function Header() {
   const [showMainMenu, setShowMainMenu] = useState(false); // "Menu" dropdown
   const [showToolsMenu, setShowToolsMenu] = useState(false); // "Tools" dropdown
 
-  // Removed old navLinks in favor of structured menus
   const { user, logout } = useAuth();
   const userMenuRef = useRef(null);
   const desktopSearchRef = useRef(null);
@@ -44,7 +43,6 @@ export default function Header() {
     }
   }, [pathname, user, router]);
 
-  // Menu items for consolidated "Menu" dropdown
   const menuItems = [
     { label: "About Us", href: "/#about-us" },
     { label: "Services", href: "/#services" },
@@ -53,7 +51,6 @@ export default function Header() {
     { label: "Blog", href: "/blog" },
   ];
 
-  // Tool links for the Tools dropdown
   const toolLinks = [
     { label: "GridLAB-D IDE", href: "/tools/gridlabd" },
     { label: "Generate Distribution Models", href: "/tools/generate-distribution-models" },
@@ -168,17 +165,15 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-200">
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-12">
           <div className="flex-shrink-0">
-            <a href="/" className="flex items-center space-x-2 text-2xl font-bold text-gray-900">
-              <Image src="/logo.png" alt="Logo" width={32} height={32} />
-              <span>SARAL</span>
+            <a href="/" className="flex items-center space-x-2 text-xl font-bold text-gray-900">
+              <Image src="/logo.png" alt="Logo" width={28} height={28} />
+              <span>{pageTitle || 'SARAL'}</span>
             </a>
           </div>
           <div className="hidden md:block">
             <nav className="flex items-center space-x-8">
-              {/* Removed standalone About Us; now included under Menu */}
-
               {/* Consolidated Menu dropdown */}
               <div className="relative" ref={mainMenuRef}>
                 <button
@@ -250,7 +245,7 @@ export default function Header() {
                     onClick={() => setShowSearchModal(true)}
                     placeholder="Search… (⌘K)"
                     aria-label="Search the site"
-                    className="w-56 lg:w-72 border border-gray-300 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-56 lg:w-72 border border-gray-300 bg-white/80 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </form>
 
@@ -280,7 +275,7 @@ export default function Header() {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors duration-300"
                   >
-                    <User size={20} />
+                    <User size={18} />
                     <span>{user.email?.split('@')[0] || 'User'}</span>
                   </button>
                   {showUserMenu && (
@@ -300,7 +295,7 @@ export default function Header() {
               ) : (
                 <a
                   href="/signin"
-                  className="text-gray-700 px-4 py-2 font-semibold hover:text-orange-600 transition-colors duration-300"
+                  className="text-gray-700 px-4 py-1.5 font-semibold hover:text-orange-600 transition-colors duration-300"
                 >
                   Sign In
                 </a>
@@ -310,7 +305,7 @@ export default function Header() {
               {!user && (
                 <a
                   href="#contact"
-                  className="h-16 flex items-center bg-[#EA580B] text-black px-4 font-semibold hover:bg-black hover:text-white transition-colors duration-300"
+                  className="h-12 flex items-center bg-[#EA580B] text-black px-4 font-semibold hover:bg-black hover:text-white transition-colors duration-300"
                 >
                   Request a Consultation
                 </a>
@@ -319,15 +314,15 @@ export default function Header() {
           </div>
           <div className="md:hidden">
             <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700 hover:text-gray-900">
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              {isOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
       </div>
       {isOpen && (
-        <div className="md:hidden bg-white/95 backdrop-blur-lg pb-4 border-t border-gray-200">
+        <div className="md:hidden bg-white/95 backdrop-blur-lg pb-3 border-t border-gray-200">
           {/* Global Search (mobile) */}
-          <form onSubmit={submitSearch} className="px-4 pt-3">
+          <form onSubmit={submitSearch} className="px-4 pt-2">
             <input
               ref={mobileSearchRef}
               type="search"
@@ -357,9 +352,7 @@ export default function Header() {
               </div>
             </div>
           )}
-          <nav className="flex flex-col items-center space-y-4 mt-4">
-            {/* Removed standalone About Us in mobile; now included under Menu */}
-
+          <nav className="flex flex-col items-center space-y-3 mt-3">
             {/* Menu items */}
             <div className="w-full px-4">
               <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Menu</div>
@@ -396,8 +389,8 @@ export default function Header() {
 
             {user ? (
               <div className="text-center w-full px-4">
-                <div className="flex items-center justify-center space-x-2 text-gray-700 mb-4">
-                  <User size={20} />
+                <div className="flex items-center justify-center space-x-2 text-gray-700 mb-3">
+                  <User size={18} />
                   <span>{user.email?.split('@')[0] || 'User'}</span>
                 </div>
                 <a
@@ -417,7 +410,7 @@ export default function Header() {
                 <a
                   href="/tools?tab=profile"
                   onClick={() => setIsOpen(false)}
-                  className="block bg-gray-100 text-gray-900 px-6 py-2 rounded-none font-semibold hover:bg-gray-200 transition-colors duration-300 mb-4"
+                  className="block bg-gray-100 text-gray-900 px-6 py-2 rounded-none font-semibold hover:bg-gray-200 transition-colors duration-300 mb-3"
                 >
                   My Profile
                 </a>
@@ -440,7 +433,6 @@ export default function Header() {
                 Sign In
               </a>
             )}
-            {/* Show Request a Consultation only when logged out (mobile) */}
             {!user && (
               <a
                 href="#contact"
