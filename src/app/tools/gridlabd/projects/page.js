@@ -68,7 +68,7 @@ export default function ProjectsPage() {
       setProjects(prev => [newProject, ...prev]);
       setShowNew(false);
       // Navigate to the project editor
-      router.push(`/tools/gridlabd2/projects/${newProject.id}`);
+      router.push(`/tools/gridlabd/projects/${newProject.id}`);
     } catch (error) {
       console.error('Failed to create project:', error);
       // Fallback: try direct apiFetch if gridlabdClient fails
@@ -79,7 +79,7 @@ export default function ProjectsPage() {
         });
         setProjects(prev => [newProject, ...prev]);
         setShowNew(false);
-        router.push(`/tools/gridlabd2/projects/${newProject.id}`);
+        router.push(`/tools/gridlabd/projects/${newProject.id}`);
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError);
       }
@@ -87,7 +87,7 @@ export default function ProjectsPage() {
   };
 
   const handleOpen = (project) => {
-    router.push(`/tools/gridlabd2/projects/${project.id}`);
+    router.push(`/tools/gridlabd/projects/${project.id}`);
   };
 
   const handleDuplicate = (project) => {
@@ -168,7 +168,7 @@ export default function ProjectsPage() {
         <div className="mb-4 text-sm text-gray-500">
           <Link href="/tools" className="hover:text-gray-700">Tools</Link>
           <span className="mx-2">/</span>
-          <Link href="/tools/gridlabd2" className="hover:text-gray-700">GridLAB-D</Link>
+          <Link href="/tools/gridlabd" className="hover:text-gray-700">GridLAB-D</Link>
           <span className="mx-2">/</span>
           <span>Projects</span>
         </div>

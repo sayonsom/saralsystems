@@ -6,6 +6,7 @@ import RouteTracker from "@/components/RouteTracker";
 import { Suspense } from "react";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import ToastContainer from '@/components/ui/ToastContainer';
+import Header from '@/components/Header';
 
 const sen = Sen({
   variable: "--font-sen",
@@ -99,6 +100,7 @@ export default function RootLayout({ children }) {
           }}
         />
         <AuthContextProvider>
+          <Header />
           {children}
         </AuthContextProvider>
         <ToastContainer />

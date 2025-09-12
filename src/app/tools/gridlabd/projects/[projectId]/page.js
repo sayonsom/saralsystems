@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
-import OutputsTab from '@/app/tools/gridlabd2/components/OutputsTab';
+import OutputsTab from '@/app/tools/gridlabd/components/OutputsTab';
 import { Plus, Save, Terminal, ArrowLeft, Play } from 'lucide-react';
 
 // Dynamic Monaco Editor
@@ -432,7 +432,7 @@ export default function ProjectEditorPage() {
           <div className="text-center">
             <div className="text-gray-500 mb-4">Project not found</div>
             <Link
-              href="/tools/gridlabd2/projects"
+              href="/tools/gridlabd/projects"
               className="text-orange-600 hover:text-orange-700"
             >
               Back to Projects
@@ -456,7 +456,7 @@ export default function ProjectEditorPage() {
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Link href="/tools/gridlabd2/projects" aria-label="Back" title="Back" className="text-gray-700 hover:text-gray-900">
+                  <Link href="/tools/gridlabd/projects" aria-label="Back" title="Back" className="text-gray-700 hover:text-gray-900">
                     <ArrowLeft className="w-4 h-4" />
                   </Link>
                   <h2 className="text-sm font-semibold text-gray-700">Files</h2>

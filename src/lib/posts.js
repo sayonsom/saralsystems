@@ -7,6 +7,11 @@ import remarkGfm from 'remark-gfm';
 
 const postsDirectory = path.join(process.cwd(), 'src/app/posts');
 
+// Normalize strings for comparison (case-insensitive, ignore non-alphanumerics)
+function normalizeTag(str = '') {
+  return String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
 export async function getPostSlugs() {
   const fileNames = fs.readdirSync(postsDirectory);
   return fileNames
@@ -59,7 +64,7 @@ export async function getPostData(slug) {
     contentHtml,
     readingTime,
     date: data.date || new Date().toISOString(),
-    author: data.author || 'Saral Team',
+    author: data.author || 'Sayonsom Chanda, Ph.D.',
     tags: data.tags || [],
     categories: data.categories || [],
     description: data.description || excerpt,
@@ -94,8 +99,8 @@ export async function getAllPosts() {
 export async function getPostsByTag(tag) {
   const allPosts = await getAllPosts();
   return allPosts.filter(post => 
-    post.tags.some(postTag => 
-      postTag.toLowerCase() === tag.toLowerCase()
+    (post.tags || []).some(postTag => 
+      normalizeTag(postTag) === normalizeTag(tag)
     )
   );
 }
