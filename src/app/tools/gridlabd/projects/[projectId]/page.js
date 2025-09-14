@@ -11,6 +11,7 @@ import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import OutputsTab from '@/app/tools/gridlabd/components/OutputsTab';
 import { Plus, Save, Terminal, ArrowLeft, Play } from 'lucide-react';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Dynamic Monaco Editor
 const MonacoEditor = dynamic(
@@ -64,13 +65,6 @@ export default function ProjectEditorPage() {
   const [isPollingConsole, setIsPollingConsole] = useState(false);
   const consolePollingRef = useRef(null);
   const consoleEndRef = useRef(null);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!user) {
-      router.push('/signin');
-    }
-  }, [user, router]);
 
   // Fetch project and files on mount
   useEffect(() => {
@@ -444,7 +438,7 @@ export default function ProjectEditorPage() {
   }
 
   return (
-    <>
+    <ProtectedRoute>
       <Header pageTitle={`GridLAB-D - ${project.name}`} />
       <div className="min-h-screen bg-gray-50 pt-12">
         {/* Removed wide sub-header bar; controls moved into Files header */}
@@ -690,6 +684,6 @@ export default function ProjectEditorPage() {
 
         <Toaster />
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

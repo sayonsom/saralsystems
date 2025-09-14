@@ -14,10 +14,16 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [authing, setAuthing] = useState(false);
+  const [info, setInfo] = useState('');
   const modalRef = useRef(null);
   
   const { login, signup, loginWithGoogle } = useAuth();
   const router = useRouter();
+
+  // Debug: log when modal opens
+  useEffect(() => {
+    if (isOpen) console.log('[Auth] LoginModal opened');
+  }, [isOpen]);
 
   // Close modal on Escape only (explicit backdrop handles outside clicks)
   useEffect(() => {
@@ -53,14 +59,24 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
   const handleGoogleLogin = async (e) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
+    console.log('[Auth] Google button clicked');
     if (authing) return;
     try {
+      setError('');
+      setInfo('Opening Google popup…');
       setAuthing(true);
-      await loginWithGoogle();
-      // Success: let parent (Header) close the modal and navigate on auth state change
+      const res = await loginWithGoogle();
+      console.log('[Auth] loginWithGoogle resolved', res);
+      if (res === null) {
+        setInfo('Redirecting to Google…');
+        return;
+      }
+      // Success handled by auth state change in Header
     } catch (error) {
+      console.error('[Auth] Google sign-in error', error);
       setAuthing(false);
-      setError(error.message);
+      setInfo('');
+      setError(error?.message || 'Google sign-in failed');
     }
   };
 
@@ -76,19 +92,17 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
   // Build modal JSX and render into document.body via portal so it centers relative to viewport
   const modal = (
     <div className="fixed inset-0 z-[200] flex items-center justify-center" role="dialog" aria-modal="true">
-      {/* Backdrop (non-interactive) */}
+      {/* Backdrop (click to close) */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-none"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={requestClose}
       />
       
       {/* Modal */}
       <div 
         ref={modalRef}
-        onPointerDown={(e) => e.stopPropagation()}
-        onPointerUp={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
         className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
@@ -113,10 +127,9 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
         <button
           type="button"
           onClick={handleGoogleLogin}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClickCapture={(e) => e.stopPropagation()}
           disabled={authing}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-busy={authing}
+          className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -124,8 +137,16 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Continue with Google
+          {authing ? 'Opening Google…' : 'Continue with Google'}
         </button>
+
+        {/* Info / Error */}
+        {(info || error) && (
+          <div className="mb-3 text-sm">
+            {info && <div className="text-gray-600">{info}</div>}
+            {error && <div className="text-red-600 bg-red-50 p-2 mt-2">{error}</div>}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">

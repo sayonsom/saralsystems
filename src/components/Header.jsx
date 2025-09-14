@@ -36,6 +36,7 @@ export default function Header({ pageTitle }) {
   useEffect(() => {
     if (pathname === "/signin") {
       if (user) {
+        // Don't force them to /tools if they navigated to a tool already
         router.replace("/tools");
       } else {
         setShowLoginModal(true);
@@ -43,12 +44,11 @@ export default function Header({ pageTitle }) {
     }
   }, [pathname, user, router]);
 
-  // Close login modal when user logs in and go to /tools
+  // Close login modal when user logs in; only redirect from /signin
   useEffect(() => {
-    if (user) {
-      if (showLoginModal) setShowLoginModal(false);
-      if (pathname !== "/tools") router.replace("/tools");
-    }
+    if (!user) return;
+    if (showLoginModal) setShowLoginModal(false);
+    if (pathname === "/signin") router.replace("/tools");
   }, [user, showLoginModal, router, pathname]);
 
   const menuItems = [
