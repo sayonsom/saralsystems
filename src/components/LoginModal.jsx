@@ -18,20 +18,29 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
   const { login, signup, loginWithGoogle } = useAuth();
   const router = useRouter();
 
-  // Close modal when clicking outside
+  // Close modal on Escape and when clicking outside (robust: ignore opener event)
   useEffect(() => {
-    function handleClickOutside(event) {
+    if (!isOpen) return;
+
+    let ignore = true;
+    const t = setTimeout(() => { ignore = false; }, 0);
+
+    function onPointerDown(event) {
+      if (ignore) return;
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
+        onClose?.();
       }
     }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+    function onKeyDown(e) {
+      if (e.key === 'Escape') onClose?.();
     }
 
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      clearTimeout(t);
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
     };
   }, [isOpen, onClose]);
 
@@ -78,7 +87,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
 
   // Build modal JSX and render into document.body via portal so it centers relative to viewport
   const modal = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center" role="dialog" aria-modal="true">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -86,7 +95,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
       />
       
       {/* Modal */}
-      <div ref={modalRef} className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+      <div ref={modalRef} onMouseDown={(e) => e.stopPropagation()} className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
         {/* Close button */}
         <button
           onClick={onClose}
