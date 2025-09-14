@@ -13,36 +13,13 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [authing, setAuthing] = useState(false);
   const modalRef = useRef(null);
   
   const { login, signup, loginWithGoogle } = useAuth();
   const router = useRouter();
 
-  // Close modal on Escape and when clicking outside (robust: ignore opener event)
-  useEffect(() => {
-    if (!isOpen) return;
-
-    let ignore = true;
-    const t = setTimeout(() => { ignore = false; }, 0);
-
-    function onPointerDown(event) {
-      if (ignore) return;
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose?.();
-      }
-    }
-    function onKeyDown(e) {
-      if (e.key === 'Escape') onClose?.();
-    }
-
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      clearTimeout(t);
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isOpen, onClose]);
+  const requestClose = () => { if (!authing) onClose?.(); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,9 +32,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
       } else {
         await login(email, password);
       }
-      // Navigate to Tools after successful auth
-      router.push('/tools');
-      onClose();
+      // Success: let parent (Header) close the modal and navigate on auth state change
     } catch (error) {
       setError(error.message);
     } finally {
@@ -65,13 +40,16 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (authing) return;
     try {
+      setAuthing(true);
       await loginWithGoogle();
-      // Navigate to Tools after successful Google auth
-      router.push('/tools');
-      onClose();
+      // Success: let parent (Header) close the modal and navigate on auth state change
     } catch (error) {
+      setAuthing(false);
       setError(error.message);
     }
   };
@@ -88,17 +66,24 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
   // Build modal JSX and render into document.body via portal so it centers relative to viewport
   const modal = (
     <div className="fixed inset-0 z-[200] flex items-center justify-center" role="dialog" aria-modal="true">
-      {/* Backdrop */}
+      {/* Backdrop (non-interactive) */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-none"
       />
       
       {/* Modal */}
-      <div ref={modalRef} onMouseDown={(e) => e.stopPropagation()} className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+      <div 
+        ref={modalRef}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6"
+      >
         {/* Close button */}
         <button
-          onClick={onClose}
+          type="button"
+          onClick={requestClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
         >
           <X size={24} />
@@ -116,8 +101,12 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
 
         {/* Google Sign In Button */}
         <button
+          type="button"
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors mb-4"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClickCapture={(e) => e.stopPropagation()}
+          disabled={authing}
+          className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -127,15 +116,6 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
           </svg>
           Continue with Google
         </button>
-
-        <div className="relative mb-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
