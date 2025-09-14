@@ -45,11 +45,11 @@ export default function Header({ pageTitle }) {
 
   // Close login modal when user logs in and go to /tools
   useEffect(() => {
-    if (user && showLoginModal) {
-      setShowLoginModal(false);
-      router.replace("/tools");
+    if (user) {
+      if (showLoginModal) setShowLoginModal(false);
+      if (pathname !== "/tools") router.replace("/tools");
     }
-  }, [user, showLoginModal, router]);
+  }, [user, showLoginModal, router, pathname]);
 
   const menuItems = [
     { label: "About Us", href: "/#about-us" },

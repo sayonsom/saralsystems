@@ -19,7 +19,17 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
   const { login, signup, loginWithGoogle } = useAuth();
   const router = useRouter();
 
-  const requestClose = () => { if (!authing) onClose?.(); };
+  // Close modal on Escape only (explicit backdrop handles outside clicks)
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
+
+  const requestClose = () => { onClose?.(); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

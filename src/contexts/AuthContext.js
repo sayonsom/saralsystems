@@ -7,7 +7,8 @@ import {
   signOut, 
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -44,7 +45,16 @@ export const AuthContextProvider = ({ children }) => {
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
+    try {
+      return await signInWithPopup(auth, provider);
+    } catch (err) {
+      // Safari or blockers: fallback to redirect flow
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+        await signInWithRedirect(auth, provider);
+        return null;
+      }
+      throw err;
+    }
   };
 
   const logout = async () => {
