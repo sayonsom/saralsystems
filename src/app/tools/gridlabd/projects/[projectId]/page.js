@@ -10,8 +10,9 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import OutputsTab from '@/app/tools/gridlabd/components/OutputsTab';
-import { Plus, Save, Terminal, ArrowLeft, Play } from 'lucide-react';
+import { Plus, Save, Terminal, ArrowLeft, Play, Share2 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ShareModal from '@/components/ShareModal';
 
 // Dynamic Monaco Editor
 const MonacoEditor = dynamic(
@@ -43,6 +44,9 @@ export default function ProjectEditorPage() {
   const { user } = useAuth();
   const projectId = params.projectId;
   const { toast } = useToast();
+
+  // sharing state
+  const [shareOpen, setShareOpen] = useState(false);
 
   // State management
   const [project, setProject] = useState(null);
@@ -402,6 +406,16 @@ export default function ProjectEditorPage() {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleShareSubmit = async ({ emails, message }) => {
+    try {
+      await projectsAPI.share(projectId, { emails, message, expires_in: 86400 });
+      toast({ title: 'Shared', description: 'Share link sent to recipients.' });
+    } catch (error) {
+      console.error('Failed to share project:', error);
+      toast({ title: 'Error', description: 'Failed to share project', variant: 'destructive' });
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -439,7 +453,7 @@ export default function ProjectEditorPage() {
 
   return (
     <ProtectedRoute>
-      <Header pageTitle={`GridLAB-D - ${project.name}`} />
+      <Header pageTitle={`GridLAB-D - ${project?.name || ''}`} />
       <div className="min-h-screen bg-gray-50 pt-12">
         {/* Removed wide sub-header bar; controls moved into Files header */}
 
@@ -464,6 +478,9 @@ export default function ProjectEditorPage() {
                   </IconButton>
                   <IconButton onClick={() => setShowConsole(!showConsole)} title={showConsole ? 'Hide Console' : 'Show Console'} ariaLabel={showConsole ? 'Hide Console' : 'Show Console'} active={showConsole}>
                     <Terminal className="w-4 h-4" />
+                  </IconButton>
+                  <IconButton onClick={() => setShareOpen(true)} title="Share Project" ariaLabel="Share Project" className="text-[#ea580b] hover:text-orange-700">
+                    <Share2 className="w-4 h-4" />
                   </IconButton>
                   <IconButton onClick={handleRunSimulation} title="Run Simulation" ariaLabel="Run Simulation" className="text-[#ea580b] hover:text-orange-700">
                     <Play className="w-4 h-4" />
@@ -628,6 +645,16 @@ export default function ProjectEditorPage() {
             </div>
           </div>
         )}
+
+        {/* Share Modal */}
+        <ShareModal
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+          title="Share project"
+          projectLink={`${typeof window !== 'undefined' ? window.location.href.split('#')[0] : ''}`}
+          multipleCount={0}
+          onSubmit={handleShareSubmit}
+        />
 
         {/* New File Modal */}
         {showNewFile && (

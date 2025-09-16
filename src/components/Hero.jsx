@@ -1,77 +1,42 @@
-"use client";
-
-import { useEffect, useState } from "react";
+// app/components/Hero.js
+import Link from "next/link";
 
 export default function Hero() {
-  const words = [
-    "Models",
-    "Forecasts",
-    "Analytics",
-    "Stack"
-  ];
-
-  const [text, setText] = useState("");
-  const [wordIndex, setWordIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const typingSpeed = isDeleting ? 50 : 100;
-
-  useEffect(() => {
-    const currentWord = words[wordIndex];
-    const handler = setTimeout(() => {
-      const updated = isDeleting
-        ? currentWord.slice(0, Math.max(0, text.length - 1))
-        : currentWord.slice(0, Math.min(currentWord.length, text.length + 1));
-      setText(updated);
-    }, typingSpeed);
-
-    return () => clearTimeout(handler);
-  }, [text, isDeleting, wordIndex]);
-
-  useEffect(() => {
-    const currentWord = words[wordIndex];
-
-    if (!isDeleting && text === currentWord) {
-      const pause = setTimeout(() => setIsDeleting(true), 900);
-      return () => clearTimeout(pause);
-    }
-
-    if (isDeleting && text === "") {
-      setIsDeleting(false);
-      setWordIndex((prev) => (prev + 1) % words.length);
-    }
-  }, [text, isDeleting, wordIndex]);
-
   return (
-    <section
-      className="relative w-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-white via-orange-50 to-white"
-      style={{ minHeight: "calc(100svh - 80px)" }}
-    >
-      {/* Background video removed */}
-      <div className="relative z-20 w-full text-center">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-gray-900">
-            <span className="block">Productivity Platform For</span>
-            <span className="block whitespace-nowrap">
-              Energy{" "}
-              <span className="text-orange-600">{text}</span>
-              <span className="inline-block w-[0.08em] h-[1em] align-[-0.15em] bg-orange-600 ml-1 animate-pulse"></span>
+    <section className="bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-20 md:py-24">
+        <div className="grid gap-8 md:grid-cols-2 md:items-center">
+          <div>
+            <h1 className="text-3xl md:text-5xl font-semibold leading-tight">
+              Accelerate
+              <span className="text-[#ea580b]"> Smart Grid</span> planning
+            </h1>
+            <p className="mt-4 text-neutral-700 max-w-xl">
+              Enhanced productivity for the tools you already trust (like CYMEDIST, Synergi). Our platform works alongside your established systems to streamline network modeling and scenario analysis, helping you meet regulatory requirements faster with full transparency and control. No replacements, no black boxes—just better results from your current investments.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <Link
+                href="/signup"
+                className="inline-flex items-center px-5 py-3 bg-[#ea580b] text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#ea580b]"
+              >
+                Free for Research
+              </Link>
+              <Link
+                href="/enterprise"
+                className="inline-flex items-center px-5 py-3 border border-neutral-900 text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              >
+                Get Demo for Utilities
+              </Link>
+            </div>
+            <p className="mt-4 text-sm text-neutral-600">
+              SOC-2 Compliance • Import from CYME/Synergi • Deploy on your cloud or on prem
+            </p>
+          </div>
+          {/* Replace this placeholder with a light, short MP4/WebM loop for performance */}
+          <div className="w-full aspect-video bg-neutral-100 flex items-center justify-center text-neutral-500">
+            <span className="px-4 text-center text-sm">
+              60-sec demo video here (prompt → model → voltage chart)
             </span>
-          </h1>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="/tools"
-              className="bg-orange-600 text-white px-8 py-3 rounded-none font-bold text-lg hover:bg-orange-700 transition-transform duration-300 inline-block transform hover:scale-105"
-            >
-              Access Tools
-            </a>
-            <a
-              href="#contact"
-              className="bg-transparent border-2 border-orange-600 text-orange-600 px-8 py-3 rounded-none font-bold text-lg hover:bg-orange-50 transition-transform duration-300 inline-block transform hover:scale-105"
-            >
-              Call us today
-            </a>
           </div>
         </div>
       </div>

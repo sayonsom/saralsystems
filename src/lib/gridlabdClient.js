@@ -48,6 +48,19 @@ export const projects = {
     });
   },
 
+  // Share project with recipients (supports optional message and expiry)
+  share: async (projectId, payload = {}, opts = {}) => {
+    const { emails = [], user_ids = [], message = '', expires_in = 86400 } = payload || {};
+    const userIds = Array.isArray(user_ids) && user_ids.length ? user_ids : emails;
+    return apiFetch(`/api/projects/${projectId}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
+      body: JSON.stringify({ user_ids: userIds, emails, message, expires_in }),
+      forceLocal: true,
+      ...opts
+    });
+  },
+
   // List simulations for a project
   listSimulations: async (projectId, params = {}, opts = {}) => {
     const searchParams = new URLSearchParams(params);

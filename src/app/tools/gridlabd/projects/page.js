@@ -12,6 +12,7 @@ import NewProjectModal from '@/components/gridlabd/NewProjectModal';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ShareModal from '@/components/ShareModal';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -22,6 +23,11 @@ export default function ProjectsPage() {
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  // selection and sharing state
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareProjectIds, setShareProjectIds] = useState([]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -93,6 +99,11 @@ export default function ProjectsPage() {
     try {
       await apiProjects.delete(project.id);
       setProjects(prev => prev.filter(p => p.id !== project.id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(project.id);
+        return next;
+      });
     } catch (error) {
       console.error('Failed to delete project:', error);
       try {
@@ -120,6 +131,46 @@ export default function ProjectsPage() {
       setCurrentPage(1);
     }
   }, [currentPage, totalPages]);
+
+  // selection helpers
+  const onToggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const onToggleSelectAll = (ids) => {
+    setSelectedIds((prev) => {
+      const allSelected = ids.every((id) => prev.has(id));
+      if (allSelected) {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      }
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  // open share modal for single item via row action or for selection
+  const openShareFor = (project) => {
+    const ids = project ? [project.id || project._id] : Array.from(selectedIds);
+    setShareProjectIds(ids);
+    setShareOpen(true);
+  };
+
+  const handleShareSubmit = async ({ emails, message }) => {
+    const ids = shareProjectIds;
+    for (const id of ids) {
+      try {
+        await apiProjects.share(id, { emails, message, expires_in: 86400 });
+      } catch (e) {
+        console.error('Failed to share project', id, e);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -168,18 +219,46 @@ export default function ProjectsPage() {
                     <button className="text-gray-500 hover:text-gray-700">[X]</button>
                   </div>
                 </div>
+                {/* bulk actions bar */}
+                {selectedIds.size > 0 && (
+                  <div className="px-6 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-3">
+                    <div className="text-sm text-gray-700">{selectedIds.size} selected</div>
+                    <button onClick={() => openShareFor()} className="px-3 py-1.5 text-sm text-white" style={{ background: '#EA580B' }}>Share</button>
+                  </div>
+                )}
                 <div className="px-6 py-4">
                   <div className="relative">
                     <input value={search} onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search in all projects..." className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">[SEARCH]</span>
                   </div>
                 </div>
-                <ProjectsTable projects={paginatedProjects} onOpen={handleOpen} onDuplicate={handleDuplicate} onDelete={handleDelete} search={search} currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                <ProjectsTable
+                  projects={paginatedProjects}
+                  onOpen={handleOpen}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                  onShare={(p) => openShareFor(p)}
+                  search={search}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  selectedIds={selectedIds}
+                  onToggleSelect={onToggleSelect}
+                  onToggleSelectAll={onToggleSelectAll}
+                />
               </div>
             </div>
           )}
 
           <NewProjectModal open={showNew} onClose={() => setShowNew(false)} onCreate={handleCreate} />
+          <ShareModal
+            isOpen={shareOpen}
+            onClose={() => setShareOpen(false)}
+            title={shareProjectIds.length > 1 ? 'Share projects' : 'Share project'}
+            projectLink={shareProjectIds.length === 1 ? `${typeof window !== 'undefined' ? window.location.origin : ''}/tools/gridlabd/projects/${shareProjectIds[0]}` : ''}
+            multipleCount={shareProjectIds.length}
+            onSubmit={handleShareSubmit}
+          />
         </div>
       </div>
     </ProtectedRoute>

@@ -25,16 +25,22 @@ function isJsonResponse(resp) {
 }
 
 export async function apiFetch(path, opts = {}) {
-  const { noRedirect401, ...rest } = opts; // flag to suppress redirect on 401
+  const { noRedirect401, forceLocal, ...rest } = opts; // flag to suppress redirect on 401 and force same-origin
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const url = `${BASE_URL}${cleanPath}`;
+  const url = forceLocal ? cleanPath : `${BASE_URL}${cleanPath}`;
 
   const authHeader = await getAuthHeader();
   const sentAuth = Boolean(authHeader.Authorization);
   const headers = { ...(rest.headers || {}), ...authHeader };
-  const init = { mode: "cors", ...rest, headers };
+  const init = forceLocal ? { ...rest, headers } : { mode: 'cors', ...rest, headers };
 
-  let res = await fetch(url, init);
+  let res;
+  try {
+    res = await fetch(url, init);
+  } catch (err) {
+    // Surface better diagnostics
+    throw err;
+  }
 
   if (res.status === 401) {
     // Only attempt refresh if we actually sent an auth header and a user exists
@@ -43,7 +49,7 @@ export async function apiFetch(path, opts = {}) {
       try {
         await user.getIdToken(true);
         const retryHeaders = { ...(rest.headers || {}), ...(await getAuthHeader()) };
-        res = await fetch(url, { mode: "cors", ...rest, headers: retryHeaders });
+        res = await fetch(url, forceLocal ? { ...rest, headers: retryHeaders } : { mode: 'cors', ...rest, headers: retryHeaders });
       } catch {}
     }
     // After optional retry, if still 401 decide whether to redirect

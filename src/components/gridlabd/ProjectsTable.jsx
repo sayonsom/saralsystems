@@ -18,7 +18,7 @@ function StatusBadge({ status, lastModified }) {
   );
 }
 
-export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete, search, currentPage, totalPages, onPageChange }) {
+export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete, onShare, search, currentPage, totalPages, onPageChange, selectedIds = new Set(), onToggleSelect = () => {}, onToggleSelectAll = () => {} }) {
   const filtered = useMemo(() => {
     const q = (search || "").toLowerCase();
     const arr = Array.isArray(projects) ? projects : (projects?.projects || projects?.data || []);
@@ -33,12 +33,22 @@ export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete,
     );
   }
 
+  const allVisibleIds = filtered.map((p) => p.id || p._id).filter(Boolean);
+  const allSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedIds.has(id));
+
   return (
     <div className="flex-1 px-6 pb-6 overflow-auto">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left py-3 px-4"><input type="checkbox" className="border-gray-300" /></th>
+            <th className="text-left py-3 px-4">
+              <input
+                type="checkbox"
+                className="border-gray-300"
+                checked={allSelected}
+                onChange={() => onToggleSelectAll(allVisibleIds)}
+              />
+            </th>
             <th className="text-left py-3 px-4 font-medium text-gray-900">Project</th>
             <th className="text-left py-3 px-4 font-medium text-gray-900">Owner</th>
             <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
@@ -46,35 +56,46 @@ export default function ProjectsTable({ projects, onOpen, onDuplicate, onDelete,
           </tr>
         </thead>
         <tbody>
-          {filtered.map((p) => (
-            <tr key={p.id || p._id} className="border-b border-gray-100 hover:bg-gray-50">
-              <td className="py-3 px-4"><input type="checkbox" className="border-gray-300" /></td>
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-400 text-sm">[FILE]</span>
-                  <div>
-                    <button onClick={() => onOpen(p)} className="font-medium text-gray-900 hover:text-orange-600">
-                      {p.name}
-                    </button>
-                    {p.shared && (
-                      <div className="text-xs text-gray-500 mt-1">Shared with {p.sharedWith}</div>
-                    )}
+          {filtered.map((p) => {
+            const id = p.id || p._id;
+            const isSelected = id ? selectedIds.has(id) : false;
+            return (
+              <tr key={id} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="py-3 px-4">
+                  <input
+                    type="checkbox"
+                    className="border-gray-300"
+                    checked={isSelected}
+                    onChange={() => onToggleSelect(id)}
+                  />
+                </td>
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-400 text-sm">[FILE]</span>
+                    <div>
+                      <button onClick={() => onOpen(p)} className="font-medium text-gray-900 hover:text-orange-600">
+                        {p.name}
+                      </button>
+                      {p.shared && (
+                        <div className="text-xs text-gray-500 mt-1">Shared with {p.sharedWith}</div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td className="py-3 px-4 text-gray-700">{p.owner_name || p.owner || "You"}</td>
-              <td className="py-3 px-4"><StatusBadge status={p.status || "success"} lastModified={p.updated_at || p.lastModified} /></td>
-              <td className="py-3 px-4">
-                <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => onDuplicate(p)} className="p-2 text-gray-400 hover:text-gray-600" title="Duplicate">DUP</button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600" title="Download">DL</button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600" title="Archive">ARC</button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600" title="Share">SHR</button>
-                  <button onClick={() => onDelete(p)} className="p-2 text-gray-400 hover:text-red-600" title="Delete">DEL</button>
-                </div>
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className="py-3 px-4 text-gray-700">{p.owner_name || p.owner || "You"}</td>
+                <td className="py-3 px-4"><StatusBadge status={p.status || "success"} lastModified={p.updated_at || p.lastModified} /></td>
+                <td className="py-3 px-4">
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => onDuplicate(p)} className="p-2 text-gray-400 hover:text-gray-600" title="Duplicate">DUP</button>
+                    <button className="p-2 text-gray-400 hover:text-gray-600" title="Download">DL</button>
+                    <button className="p-2 text-gray-400 hover:text-gray-600" title="Archive">ARC</button>
+                    <button onClick={() => onShare?.(p)} className="p-2 text-gray-400 hover:text-gray-600" title="Share">SHR</button>
+                    <button onClick={() => onDelete(p)} className="p-2 text-gray-400 hover:text-red-600" title="Delete">DEL</button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 

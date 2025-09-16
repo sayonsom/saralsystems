@@ -63,7 +63,7 @@ export default function EnergySecuritySection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            India's Energy Security
+            Download Free E-Books
           </h2>
           <p className="text-gray-600 max-w-3xl mx-auto text-lg">
             Critical insights and analysis on securing India's energy future through sustainable infrastructure, 

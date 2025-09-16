@@ -63,6 +63,9 @@ export const metadata = {
   robots: {
     index: true,
     follow: true,
+    "max-image-preview": "large",
+    "max-video-preview": -1,
+    "max-snippet": -1,
     googleBot: {
       index: true,
       follow: true,
@@ -73,12 +76,19 @@ export const metadata = {
   },
 };
 
+export const viewport = {
+  themeColor: "#ea580b",
+  colorScheme: "light",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({ children }) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
   return (
-    <html lang="en">
+    <html lang="en" className="h-full scroll-smooth">
       <body
-        className={`${sen.variable} font-sans antialiased`}
+        className={`${sen.variable} min-h-screen bg-white text-neutral-900 font-sans antialiased`}
       >
         {/* JSON-LD for Organization */}
         <script

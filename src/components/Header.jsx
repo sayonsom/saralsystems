@@ -177,7 +177,7 @@ export default function Header({ pageTitle }) {
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center space-x-2 text-xl font-bold text-gray-900">
               <Image src="/logo.png" alt="Logo" width={28} height={28} />
-              <span>{pageTitle || 'SARAL'}</span>
+              <span>{pageTitle || 'VoltEdge'}</span>
             </a>
           </div>
           <div className="hidden md:block">

@@ -34,7 +34,7 @@ export default function TechnologiesSection() {
   return (
     <Section className="bg-gray-50">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Technologies Built on Saral</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What others are building on VoltEdge</h2>
         <p className="text-gray-600 max-w-3xl mx-auto text-lg">
           Cutting-edge solutions powered by our AI platform, transforming India's energy infrastructure 
           one innovation at a time.
