@@ -8,7 +8,7 @@ export const metadata = {
     title: "Sayonsom Chanda | AI, Power Systems & Cloud | Saral",
     description:
       "Portfolio and bio of Sayonsom Chanda — AI and power systems engineer. Publications, projects, tutorials, and talks.",
-    url: "https://www.saralsystems.co/sayonsom-chanda",
+    url: "https://www.voltedge.dev/sayonsom-chanda",
     images: [{ url: "/og.webp", width: 1200, height: 630, alt: "Sayonsom Chanda" }],
     type: "profile",
     firstName: "Sayonsom",

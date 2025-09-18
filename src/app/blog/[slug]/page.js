@@ -8,7 +8,7 @@ import { documentToReactComponents } from '@contentful/rich-text-react-renderer'
 import { BLOCKS, MARKS, INLINES } from '@contentful/rich-text-types';
 import ArticleMeterGate from '@/components/ArticleMeterGate';
 
-const BASE = 'https://www.saralsystems.co';
+const BASE = 'https://www.voltedge.dev';
 
 // Generate dynamic metadata for SEO
 export async function generateMetadata({ params }) {

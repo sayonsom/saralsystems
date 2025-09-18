@@ -16,6 +16,12 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: '/tools/gridlabd/projects', destination: '/projects', permanent: true },
+      { source: '/tools/gridlabd/projects/:path*', destination: '/projects/:path*', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -23,7 +23,7 @@ import {
   Twitter,
 } from "lucide-react";
 
-const BASE = "https://www.saralsystems.co";
+const BASE = "https://www.voltedge.dev";
 
 export default function Portfolio() {
   const [accordionOpen, setAccordionOpen] = useState({
@@ -58,7 +58,7 @@ export default function Portfolio() {
       link: "/research/chil-platform",
     },
     {
-      title: "UI-ASSIST Smart Distribution",
+      title: "UI-ASSIST - Bringing energy innovation and applications together in two countries",
       description:
         "USA-India collaborative for next-gen algorithms enabling renewable energy scale-up in distribution infrastructure.",
       tech: ["GridLAB-D", "OpenDSS", "PSSE", "Real-time Validation"],
@@ -67,7 +67,16 @@ export default function Portfolio() {
       link: "/research/ui-assist",
     },
     {
-      title: "Satellite Imagery Vegetation Management",
+      title: "RADIANCE - Bringing resilient microgrids with storage to Alaska",
+      description:
+        "USA-India collaborative for next-gen algorithms enabling renewable energy scale-up in distribution infrastructure.",
+      tech: ["GridLAB-D", "OpenDSS", "PSSE", "Real-time Validation", "Microgrids", "Solar Panel"],
+      impact:
+        "Part of a $32M consortium promoting international collaboration improving grid resilience across two democracies.",
+      link: "/research/ui-assist",
+    },
+    {
+      title: "AI-based Satellite Imagery Powered Vegetation Management",
       description:
         "AI-powered proactive vegetation management reducing tree-related outages by 15-20% for utilities.",
       tech: ["Computer Vision", "ML/AI", "Satellite Imagery", "Python"],
@@ -76,13 +85,13 @@ export default function Portfolio() {
       link: "/tools/vegetation-management",
     },
     {
-      title: "UtilityMaps Analytics Platform",
+      title: "VoltEdge - Smart Grid Planning & Analytics Platform",
       description:
         "Co-pilot data analytics tool for clean energy developers with GIS-based siting and interconnection analysis.",
       tech: ["React", "GIS", "Python", "Cloud Computing"],
       impact:
         "20% faster renewable integration, 15% increased renewable potential identification.",
-      link: "https://utilitymaps.co",
+      link: "https://voltedge.dev",
     },
     {
       title: "PyCANVASS Open Source",
@@ -104,15 +113,6 @@ export default function Portfolio() {
         "Leading 6+ transmission/distribution projects, established 28-core RTDS lab, quantum computing integration.",
       description:
         "PI/Co-PI of major DOE projects including UI-ASSIST ($6.5M), QIL architecture, and 10,000 CHIL platform.",
-    },
-    {
-      company: "Plexflo Climate & Energy LLC",
-      role: "Founder & Energy Consultant",
-      timeframe: "2021 - Present",
-      impact:
-        "Delivered 3000+ feeder studies, 20% grid integration time reduction for renewables.",
-      description:
-        "Custom software solutions for distribution planning, GIS-based renewable siting, VR training platforms.",
     },
     {
       company: "Sync Energy AI",
@@ -197,17 +197,22 @@ export default function Portfolio() {
   ];
 
   const certifications = [
-    "10+ Journal Publications (850 citations, h-index: 14)",
+    "10+ Journal Publications (1100+ citations, h-index: 14)",
+    "4 Book Chapters",
     "3 US Patents (Probabilistic correlations, Conversational AI, Quantum-in-Loop)",
     "GridLAB-D YouTube Course Creator (10,000+ views)",
-    "O-1 Extraordinary Ability Visa & Green Card Holder",
+    "O-1 Extraordinary Ability Visa & EB-1 (Green Card) Approved",
     "R&D 100 Award Finalist 2024",
   ];
 
+  const languagesSpoken = [
+    "English", "Bengali", "Hindi", "Korean"
+  ]
+
   const galleryImages = [
-    "/nrel-rtds-lab.jpg",
-    "/quantum-computing-setup.jpg",
-    "/ui-assist-collaboration.jpg",
+    "/nrel-rtds-lab.jpg", // bounder fun run
+    "/quantum-computing-setup.jpg", // canara bank marathon
+    "/ui-assist-collaboration.jpg", // 
     "/vegetation-management-demo.jpg",
   ];
 
@@ -247,39 +252,47 @@ export default function Portfolio() {
     "@context": "https://schema.org",
     "@type": "Person",
     name: "Sayonsom Chanda",
-    jobTitle: "Senior Scientist at NREL | Founder at Plexflo",
+    jobTitle: "Senior Scientist at NREL (U.S. Department of Energy Laboratory)",
     url: `${BASE}/sayonsom-chanda`,
     sameAs: [
       "https://github.com/sayonsom",
       "https://www.linkedin.com/in/sayonsom/",
-      "https://scholar.google.com/citations?user=eTDi7boAAAAJ&hl=en",
-      "https://chanda.io",
+      "https://scholar.google.com/citations?user=eTDi7boAAAAJ&hl=en"
     ],
     worksFor: [
       {
         "@type": "Organization",
         name: "National Renewable Energy Laboratory",
         url: "https://www.nrel.gov",
-      },
-      {
-        "@type": "Organization",
-        name: "Plexflo Climate & Energy LLC",
-        url: "https://plexflo.com",
-      },
+      }
     ],
     knowsAbout: [
       "Power Systems Modeling",
       "GridLAB-D",
-      "RTDS/Hardware-in-Loop",
-      "Quantum Computing for Grid",
+      "Smart Grid",
+      "Microgrid Design",
+      "Distribution System Design and Planning",
+      "Quantum Computing",
+      "Quantum Computing Applications for Power Grid",
+      "AI Applications in Utilities",
+      "India Energy Stack",
+      "National Smart Grid Mission",
+      "Distribution System Modeling",
+      "GridLAB-D",
+      "RTDS",
+      "Hardware-in-Loop",
       "AI/ML for Energy",
       "Distribution System Planning",
       "Renewable Energy Integration",
       "Grid Resilience",
       "Real-time Simulations",
       "Vegetation Management",
+      "PPA",
+      "Energy Markets"
     ],
     award: [
+      "Samsung Excellence Award Winner (SRI-B) - [2025] (1) For commercialising AC-Fan synchronization technology; (2) Building in-house datapipeline for tracking carbon generated by energy production in more than 156 zones around the world",
+      "EPRI Award for Best Project on Quantum Computing Application for Smart Grids",
       "R&D 100 Award Finalist 2024",
       "NSF SBIR Grant $255,000",
       "Key Contributor Award - NREL",

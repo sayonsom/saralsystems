@@ -5,7 +5,7 @@ export const metadata = {
   openGraph: {
     title: 'Data Center Designer | Saral',
     description: 'Size and cost data centers, simulate energy and financials, and compare scenarios.',
-    url: 'https://www.saralsystems.co/tools/data-center-designer',
+    url: 'https://www.voltedge.dev/tools/data-center-designer',
     images: [{ url: '/og.webp', width: 1200, height: 630, alt: 'Data Center Designer' }],
     type: 'website',
   },

@@ -16,7 +16,7 @@ export default function Hero() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/tools/gridlabd/projects"
+                href="/projects"
                 className="bg-[#ea580b] hover:bg-orange-600 text-white px-8 py-4 text-lg font-semibold transition-all transform hover:scale-[1.02] text-center"
                 aria-label="Start Simulating"
               >
@@ -35,7 +35,7 @@ export default function Hero() {
             <div className="bg-gray-100 border-2 border-[#ea580b] aspect-video relative overflow-hidden rounded">
               <iframe
                 src={`https://www.youtube.com/embed/tDmjz6HB-yw?rel=0&modestbranding=1&playsinline=1`}
-                title="GridLAB-D Cloud Demo"
+                title="VoltEdge Cloud Demo"
                 className="absolute inset-0 w-full h-full"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -44,7 +44,7 @@ export default function Hero() {
               />
             </div>
             <p className="text-center text-gray-600 mt-4 text-sm">
-              Watch how GridLAB-D Cloud transforms distribution planning workflows
+              Watch how VoltEdge Cloud transforms distribution planning workflows
             </p>
           </div>
         </div>

@@ -1,5 +1,18 @@
 import { apiFetch } from './api';
 
+// Users API
+export const users = {
+  lookup: async (emails = [], opts = {}) => {
+    return apiFetch('/api/users/lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
+      body: JSON.stringify({ emails }),
+      forceLocal: true,
+      ...opts
+    });
+  },
+};
+
 // Projects API
 export const projects = {
   // Create a new project
@@ -11,6 +24,8 @@ export const projects = {
       ...opts
     });
   },
+  // Back-compat alias
+  createProject: async (data, opts = {}) => projects.create(data, opts),
 
   // List user's projects
   list: async (params = {}, opts = {}) => {
@@ -20,6 +35,8 @@ export const projects = {
       headers: { ...opts.headers }
     });
   },
+  // Back-compat alias
+  listProjects: async (params = {}, opts = {}) => projects.list(params, opts),
 
   // Get project details
   get: async (projectId, opts = {}) => {
@@ -39,7 +56,7 @@ export const projects = {
     });
   },
 
-  // Delete project
+  // Delete project (hard delete)
   delete: async (projectId, opts = {}) => {
     return apiFetch(`/api/projects/${projectId}`, {
       method: 'DELETE',
@@ -47,15 +64,48 @@ export const projects = {
       headers: { ...opts.headers }
     });
   },
+  // Back-compat alias
+  deleteProject: async (projectId, opts = {}) => projects.delete(projectId, opts),
 
-  // Share project with recipients (supports optional message and expiry)
+  // Share project with recipients (supports optional message and expiry). Accepts emails or user_ids.
   share: async (projectId, payload = {}, opts = {}) => {
-    const { emails = [], user_ids = [], message = '', expires_in = 86400 } = payload || {};
-    const userIds = Array.isArray(user_ids) && user_ids.length ? user_ids : emails;
+    const { emails = [], user_ids = [], message = '', expires_in = 86400, role = 'viewer' } = payload || {};
+    let userIds = Array.isArray(user_ids) ? [...user_ids] : [];
+
+    // If user_ids not provided, try to resolve emails to ids via lookup
+    if ((!userIds || userIds.length === 0) && emails?.length) {
+      try {
+        const lookup = await users.lookup(emails, opts);
+        const mapped = Array.isArray(lookup?.users) ? lookup.users : [];
+        userIds = mapped.filter(u => u.exists && u.id).map(u => u.id);
+      } catch (e) {
+        // proceed with emails as invites
+      }
+    }
+
     return apiFetch(`/api/projects/${projectId}/share`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...opts.headers },
-      body: JSON.stringify({ user_ids: userIds, emails, message, expires_in }),
+      body: JSON.stringify({ user_ids: userIds, emails, message, expires_in, role }),
+      forceLocal: true,
+      ...opts
+    });
+  },
+
+  // Bulk share helper
+  shareBulk: async ({ project_ids = [], emails = [], user_ids = [], message = '', expires_in = 86400, role = 'viewer' }, opts = {}) => {
+    let userIds = Array.isArray(user_ids) ? [...user_ids] : [];
+    if ((!userIds || userIds.length === 0) && emails?.length) {
+      try {
+        const lookup = await users.lookup(emails, opts);
+        const mapped = Array.isArray(lookup?.users) ? lookup.users : [];
+        userIds = mapped.filter(u => u.exists && u.id).map(u => u.id);
+      } catch {}
+    }
+    return apiFetch('/api/projects/share/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
+      body: JSON.stringify({ project_ids, user_ids: userIds, emails, message, expires_in, role }),
       forceLocal: true,
       ...opts
     });
@@ -193,6 +243,92 @@ export const projects = {
       method: 'DELETE',
       ...opts,
       headers: { ...opts.headers }
+    });
+  },
+
+  // === New: Filter & state transitions ===
+  // List projects shared with current user (not trashed)
+  shared: async (opts = {}) => {
+    return apiFetch('/api/projects/shared', {
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+
+  // List archived projects (owned by user)
+  archived: async (opts = {}) => {
+    return apiFetch('/api/projects/archived', {
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+
+  // List trashed projects (owned by user)
+  trashed: async (opts = {}) => {
+    return apiFetch('/api/projects/trashed', {
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+
+  // General filter with view/tag/q
+  filter: async ({ view, tag, q } = {}, opts = {}) => {
+    const sp = new URLSearchParams();
+    if (view) sp.set('view', view);
+    if (tag) sp.set('tag', tag);
+    if (q) sp.set('q', q);
+    return apiFetch(`/api/projects/filter?${sp.toString()}`.replace(/\?$/, ''), {
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+
+  // State transitions
+  archive: async (projectId, opts = {}) => {
+    return apiFetch(`/api/projects/${projectId}/archive`, {
+      method: 'POST',
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+  unarchive: async (projectId, opts = {}) => {
+    return apiFetch(`/api/projects/${projectId}/unarchive`, {
+      method: 'POST',
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+  trash: async (projectId, opts = {}) => {
+    return apiFetch(`/api/projects/${projectId}/trash`, {
+      method: 'POST',
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+  restore: async (projectId, opts = {}) => {
+    return apiFetch(`/api/projects/${projectId}/restore`, {
+      method: 'POST',
+      ...opts,
+      headers: { ...opts.headers },
+      forceLocal: true
+    });
+  },
+
+  // Set tags array on a project
+  setTags: async (projectId, tags = [], opts = {}) => {
+    return apiFetch(`/api/projects/${projectId}/tags:set`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
+      body: JSON.stringify({ tags }),
+      forceLocal: true,
+      ...opts
     });
   }
 };

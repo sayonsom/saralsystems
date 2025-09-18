@@ -6,15 +6,15 @@ import NewsletterForm from '@/components/NewsletterForm';
 
 // Metadata for SEO
 export const metadata = {
-  title: 'Technical Posts - Power Systems, GridLAB-D, and Smart Grid Tutorials',
-  description: 'In-depth technical posts on power systems modeling, GridLAB-D simulations, smart grid technologies, and distribution system analysis.',
+  title: 'Technical Posts - Power Systems, VoltEdge, and Smart Grid Tutorials',
+  description: 'In-depth technical posts on power systems modeling, VoltEdge simulations, smart grid technologies, and distribution system analysis.',
   alternates: { canonical: '/posts' },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'Technical Posts - Power Systems & GridLAB-D Tutorials',
-    description: 'Expert tutorials and guides on power systems modeling, GridLAB-D simulations, and smart grid technologies.',
+    title: 'Technical Posts - Power Systems & VoltEdge Tutorials',
+    description: 'Expert tutorials and guides on power systems modeling, VoltEdge simulations, and smart grid technologies.',
     type: 'website',
-    url: 'https://www.saralsystems.co/posts',
+    url: 'https://www.voltedge.dev/posts',
   },
 };
 
@@ -56,7 +56,7 @@ async function PostsPage({ searchParams }) {
           Technical Posts
         </h1>
         <p className="text-[1.3125rem] text-black max-w-3xl mx-auto font-[family-name:var(--font-pt-serif)]">
-          In-depth tutorials, guides, and insights on power systems modeling, GridLAB-D simulations, 
+          In-depth tutorials, guides, and insights on power systems modeling, VoltEdge simulations, 
           and smart grid technologies from our team of experts.
         </p>
         

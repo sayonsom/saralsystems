@@ -6,7 +6,7 @@ export default function ProjectsEmptyState({ onCreate, onLearn, onClone }) {
   return (
     <div className="max-w-6xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Welcome to GridLAB-D Web IDE</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Welcome to VoltEdge Web IDE</h1>
         <p className="text-lg text-gray-600">Start your power system simulation journey</p>
       </div>
 

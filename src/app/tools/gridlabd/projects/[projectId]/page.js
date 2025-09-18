@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { projects as projectsAPI, simulations as simulationsAPI } from '@/lib/gridlabdClient';
+import { projects as projectsAPI, simulations as simulationsAPI, users as usersAPI } from '@/lib/gridlabdClient';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
@@ -80,20 +80,17 @@ export default function ProjectEditorPage() {
   const fetchProjectData = async () => {
     try {
       setLoading(true);
-      
+      const id = projectId;
       // Fetch project details
-      const projectData = await projectsAPI.get(projectId);
+      const projectData = await projectsAPI.get(id, { forceLocal: true });
       setProject(projectData);
-      
       // Fetch project files
-      const filesData = await projectsAPI.listFiles(projectId);
+      const filesData = await projectsAPI.listFiles(id, { forceLocal: true });
       const list = Array.isArray(filesData) ? filesData : filesData.files || [];
       setFiles(list);
-      
       // Fetch project simulations
-      const simulationsData = await projectsAPI.listSimulations(projectId);
+      const simulationsData = await projectsAPI.listSimulations(id, {}, { forceLocal: true });
       setSimulations(Array.isArray(simulationsData) ? simulationsData : simulationsData.simulations || []);
-      
     } catch (error) {
       console.error('Failed to fetch project data:', error);
       toast({ 
@@ -165,7 +162,7 @@ export default function ProjectEditorPage() {
     }
 
     try {
-      const fileData = await projectsAPI.getFile(projectId, file.id);
+      const fileData = await projectsAPI.getFile(projectId, file.id, { forceLocal: true });
       setSelectedFile(file);
       setFileContent(fileData.content || '');
       setIsDirty(false);
@@ -204,7 +201,7 @@ export default function ProjectEditorPage() {
       await projectsAPI.updateFile(projectId, selectedFile.id, { 
         content: fileContent,
         filename: selectedFile.filename 
-      });
+      }, { forceLocal: true });
       setIsDirty(false);
       toast({ 
         title: 'Success', 
@@ -236,16 +233,13 @@ export default function ProjectEditorPage() {
         filename: newFileName,
         content: newFileContent || '// New GLM file\n',
         file_type: newFileName.endsWith('.glm') ? 'glm' : 'text'
-      });
-      
+      }, { forceLocal: true });
       // Refresh files list (without full-page loading state)
-      const filesData = await projectsAPI.listFiles(projectId);
+      const filesData = await projectsAPI.listFiles(projectId, { forceLocal: true });
       const list = Array.isArray(filesData) ? filesData : filesData.files || [];
       setFiles(list);
-      
       // Select the new file
       handleFileSelect(newFile);
-      
       // Reset form and close modal
       setNewFileName('');
       setNewFileContent('');
@@ -270,7 +264,7 @@ export default function ProjectEditorPage() {
     if (!window.confirm('Are you sure you want to delete this file?')) return;
 
     try {
-      await projectsAPI.deleteFile(projectId, fileId);
+      await projectsAPI.deleteFile(projectId, fileId, { forceLocal: true });
       
       // Clear selection if deleted file was selected
       if (selectedFile?.id === fileId) {
@@ -280,7 +274,7 @@ export default function ProjectEditorPage() {
       }
       
       // Refresh files list (no page flash)
-      const filesData = await projectsAPI.listFiles(projectId);
+      const filesData = await projectsAPI.listFiles(projectId, { forceLocal: true });
       const list = Array.isArray(filesData) ? filesData : filesData.files || [];
       setFiles(list);
       
@@ -308,8 +302,7 @@ export default function ProjectEditorPage() {
           main_file: selectedFile?.filename || 'main.glm'
         }
       };
-      
-      const newSimulation = await simulationsAPI.create(simulationData);
+      const newSimulation = await simulationsAPI.create(simulationData, { forceLocal: true });
       
       // Surface immediately without page flash
       setSimulations(prev => [newSimulation, ...(Array.isArray(prev) ? prev : [])]);
@@ -340,7 +333,7 @@ export default function ProjectEditorPage() {
   const pollSimulationStatus = async (simulationId) => {
     const pollInterval = setInterval(async () => {
       try {
-        const simulation = await simulationsAPI.get(simulationId);
+        const simulation = await simulationsAPI.get(simulationId, { forceLocal: true });
         
         // Update simulation in list
         setSimulations(prev => prev.map(s => 
@@ -408,7 +401,15 @@ export default function ProjectEditorPage() {
 
   const handleShareSubmit = async ({ emails, message }) => {
     try {
-      await projectsAPI.share(projectId, { emails, message, expires_in: 86400 });
+      let userIds = [];
+      if (emails?.length) {
+        try {
+          const lookup = await usersAPI.lookup(emails);
+          const mapped = Array.isArray(lookup?.users) ? lookup.users : [];
+          userIds = mapped.filter(u => u.exists && u.id).map(u => u.id);
+        } catch {}
+      }
+      await projectsAPI.share(projectId, { emails, user_ids: userIds, message, expires_in: 86400 });
       toast({ title: 'Shared', description: 'Share link sent to recipients.' });
     } catch (error) {
       console.error('Failed to share project:', error);
@@ -419,7 +420,7 @@ export default function ProjectEditorPage() {
   if (loading) {
     return (
       <>
-        <Header pageTitle="GridLAB-D Editor" />
+        <Header pageTitle="VoltEdge Editor" />
         <div className="min-h-screen flex items-center justify-center pt-12">
           <div className="text-gray-500">Loading project...</div>
         </div>
@@ -435,7 +436,7 @@ export default function ProjectEditorPage() {
   if (!project) {
     return (
       <>
-        <Header pageTitle="GridLAB-D Editor" />
+        <Header pageTitle="VoltEdge Editor" />
         <div className="min-h-screen flex items-center justify-center pt-12">
           <div className="text-center">
             <div className="text-gray-500 mb-4">Project not found</div>
@@ -453,7 +454,7 @@ export default function ProjectEditorPage() {
 
   return (
     <ProtectedRoute>
-      <Header pageTitle={`GridLAB-D - ${project?.name || ''}`} />
+      <Header pageTitle={`VoltEdge - ${project?.name || ''}`} />
       <div className="min-h-screen bg-gray-50 pt-12">
         {/* Removed wide sub-header bar; controls moved into Files header */}
 

@@ -1,5 +1,6 @@
 'use client';
 
+// Migrated from /tools/gridlabd/projects/page.js with path adjustments
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -26,7 +27,8 @@ export default function ProjectsPage() {
   const [showNew, setShowNew] = useState(false);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  // Updated page size to 25 per request
+  const itemsPerPage = 25;
 
   // selection and sharing state
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -90,7 +92,7 @@ export default function ProjectsPage() {
       const normalized = { ...newProject, id: newProject?.id || newProject?._id || newProject?.project_id };
       setProjects(prev => [normalized, ...prev]);
       setShowNew(false);
-      router.push(`/tools/gridlabd/projects/${normalized.id}`);
+      router.push(`/projects/${normalized.id}`);
     } catch (error) {
       console.error('Failed to create project:', error);
       try {
@@ -102,7 +104,7 @@ export default function ProjectsPage() {
         const normalized = { ...newProject, id: newProject?.id || newProject?._id || newProject?.project_id };
         setProjects(prev => [normalized, ...prev]);
         setShowNew(false);
-        router.push(`/tools/gridlabd/projects/${normalized.id}`);
+        router.push(`/projects/${normalized.id}`);
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError);
       }
@@ -112,7 +114,7 @@ export default function ProjectsPage() {
   const handleOpen = (project) => {
     const id = project?.id || project?._id || project?.project_id;
     if (!id) return;
-    router.push(`/tools/gridlabd/projects/${id}`);
+    router.push(`/projects/${id}`);
   };
 
   const handleDuplicate = (project) => {
@@ -263,8 +265,6 @@ export default function ProjectsPage() {
           <div className="mb-4 text-sm text-gray-500">
             <Link href="/tools" className="hover:text-gray-700">Tools</Link>
             <span className="mx-2">/</span>
-            <Link href="/tools/gridlabd" className="hover:text-gray-700">VoltEdge</Link>
-            <span className="mx-2">/</span>
             <span>Projects</span>
           </div>
 
@@ -320,7 +320,12 @@ export default function ProjectsPage() {
                 <div className="px-6 py-4">
                   <div className="relative">
                     <input value={search} onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search in projects..." className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">[SEARCH]</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="7" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
                 <ProjectsTable
@@ -336,6 +341,7 @@ export default function ProjectsPage() {
                   search={search}
                   currentPage={currentPage}
                   totalPages={totalPages}
+                  totalCount={filteredProjects.length}
                   onPageChange={handlePageChange}
                   selectedIds={selectedIds}
                   onToggleSelect={onToggleSelect}
@@ -351,7 +357,7 @@ export default function ProjectsPage() {
             isOpen={shareOpen}
             onClose={() => setShareOpen(false)}
             title={shareProjectIds.length > 1 ? 'Share projects' : 'Share project'}
-            projectLink={shareProjectIds.length === 1 ? `${typeof window !== 'undefined' ? window.location.origin : ''}/tools/gridlabd/projects/${shareProjectIds[0]}` : ''}
+            projectLink={shareProjectIds.length === 1 ? `${typeof window !== 'undefined' ? window.location.origin : ''}/projects/${shareProjectIds[0]}` : ''}
             multipleCount={shareProjectIds.length}
             onSubmit={handleShareSubmit}
           />

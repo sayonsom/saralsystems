@@ -13,7 +13,7 @@ import Utilities from '@/components/gridlabd-cloud/Utilities';
 import Researchers from '@/components/gridlabd-cloud/Researchers';
 
 export default async function Page() {
-  const gridlabdPosts = (await getPostsByTag('GridLAB-D')).slice(0, 6);
+  const gridlabdPosts = (await getPostsByTag('VoltEdge')).slice(0, 6);
 
   return (
     <main className="bg-white text-gray-900">
@@ -33,11 +33,11 @@ export default async function Page() {
       {/* Dashboard */}
       <DashboardMock />
 
-      {/* Technical Posts: GridLAB-D */}
+      {/* Technical Posts: VoltEdge */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-end justify-between mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold">Latest on GridLAB-D</h2>
+            <h2 className="text-3xl md:text-4xl font-bold">Latest on VoltEdge</h2>
             <Link href="/posts" className="text-indigo-600 hover:text-indigo-800 font-medium">
               Read More →
             </Link>

@@ -4,7 +4,7 @@ import { getAllInsights } from "@/lib/markdown";
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const base = "https://www.saralsystems.co";
+  const base = "https://www.voltedge.dev";
 
   const staticUrls = [
     "/",

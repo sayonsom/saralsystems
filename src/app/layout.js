@@ -15,10 +15,10 @@ const sen = Sen({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://www.saralsystems.co"),
+  metadataBase: new URL("https://www.voltedge.dev"),
   title: {
     default: "We minimize risks for Energy Transition",
-    template: "%s | Saral",
+    template: "%s | VoltEdge",
   },
   description:
     "AI-powered services for data center prospecting, energy stack, smart metering, renewable penetration, market policy design, PPA cost analysis, workflow automation, and energy workforce upskilling in India.",
@@ -31,17 +31,17 @@ export const metadata = {
     "workforce upskilling",
   ],
   openGraph: {
-    title: "Saral – Simplifying India's Energy Transition",
+    title: "VoltEdge – Smart Grid and Distribution Systems Planning",
     description:
-      "AI-powered services for data center prospecting, PPA cost analysis, workflow automation, and workforce upskilling in India.",
-    url: "https://www.saralsystems.co/",
-    siteName: "Saral",
+      "",
+    url: "https://www.voltedge.dev/",
+    siteName: "VoltEdge",
     images: [
       {
         url: "/og.webp",
         width: 1200,
         height: 630,
-        alt: "Saral",
+        alt: "VoltEdge",
       },
     ],
     locale: "en_IN",
@@ -52,7 +52,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Saral – Simplifying India's Energy Transition",
+    title: "VoltEdge – Simplifying India's Energy Transition",
     description:
       "AI-powered services for data center prospecting, PPA cost analysis, workflow automation, and workforce upskilling in India.",
     images: ["/vercel.svg"],
@@ -97,13 +97,13 @@ export default function RootLayout({ children }) {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "Saral",
-              url: "https://www.saralsystems.co",
+              name: "VoltEdge",
+              url: "https://www.voltedge.dev",
               sameAs: [],
-              logo: "https://www.saralsystems.co/logo.png",
+              logo: "https://www.voltedge.dev/logo.png",
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://www.saralsystems.co/search?q={search_term_string}",
+                target: "https://www.voltedge.dev/search?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import ArticleMeterGate from '@/components/ArticleMeterGate';
 
-const BASE = 'https://www.saralsystems.co';
+const BASE = 'https://www.voltedge.dev';
 
 export async function generateStaticParams() {
   const slugs = await getInsightSlugs();

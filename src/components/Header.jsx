@@ -60,12 +60,7 @@ export default function Header({ pageTitle }) {
   ];
 
   const toolLinks = [
-    { label: "GridLAB-D IDE", href: "/tools/gridlabd" },
-    { label: "Generate Distribution Models", href: "/tools/generate-distribution-models" },
-    { label: "Smart Meter Load Disaggregation", href: "/tools/smart-meter-load-disaggregation" },
-    { label: "Satellite Resilience Monitoring", href: "/tools/satellite-resilience-monitoring" },
-    { label: "Data Center Designer", href: "/tools/data-center-designer" },
-    { label: "All Tools", href: "/tools" },
+  { label: "Projects", href: "/projects" }
   ];
 
   // Close menus when clicking outside
@@ -290,6 +285,7 @@ export default function Header({ pageTitle }) {
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                       <a href="/tools?tab=profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
                       <a href="/tools?tab=projects" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Projects</a>
+                      <a href="/projects" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Projects (New)</a>
                       <a href="/tools?tab=api-keys" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">API Keys</a>
                       <button
                         onClick={logout}

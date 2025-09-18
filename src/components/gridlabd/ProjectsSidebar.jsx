@@ -2,7 +2,18 @@
 
 import React from "react";
 
-export default function ProjectsSidebar({ onCreate }) {
+export default function ProjectsSidebar({ onCreate, currentView = "all", onChangeView = () => {} }) {
+  const item = (key, label) => (
+    <button
+      onClick={() => onChangeView(key)}
+      className={`w-full text-left flex items-center px-3 py-2 text-sm font-medium rounded ${
+        currentView === key ? "bg-gray-100 text-gray-900" : "text-gray-700 hover:bg-gray-100"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4">
@@ -13,11 +24,11 @@ export default function ProjectsSidebar({ onCreate }) {
 
       <nav className="flex-1 px-4">
         <div className="space-y-1">
-          <a className="flex items-center px-3 py-2 text-sm font-medium bg-gray-100 text-gray-900">All projects</a>
-          <a className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Your projects</a>
-          <a className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Shared with you</a>
-          <a className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Archived projects</a>
-          <a className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Trashed projects</a>
+          {item("all", "All projects")}
+          {item("owned", "Your projects")}
+          {item("shared", "Shared with you")}
+          {item("archived", "Archived projects")}
+          {item("trashed", "Trashed projects")}
         </div>
 
         <div className="mt-8">
