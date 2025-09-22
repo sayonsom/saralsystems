@@ -1,7 +1,6 @@
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva } from "class-variance-authority"
-import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const ToastProvider = ToastPrimitives.Provider
@@ -19,14 +18,16 @@ const ToastViewport = React.forwardRef(({ className, ...props }, ref) => (
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  // Make background solid and readable
+  // Solid, readable backgrounds; variant-specific color palettes
   "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden border p-4 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:shadow-[var(--radix-toast-swipe-move-shadow)] data-[swipe=move]:border-transparent focus:outline-none focus-visible:ring-1 focus-visible:ring-ring data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
   {
     variants: {
       variant: {
         default: "border-gray-200 bg-white text-gray-900",
-        destructive:
-          "border-red-600 bg-red-600 text-white",
+        success: "border-green-200 bg-green-50 text-green-900",
+        error: "border-red-200 bg-red-50 text-red-900",
+        // Keep 'destructive' for backward-compat; map to error styling
+        destructive: "border-red-200 bg-red-50 text-red-900",
       },
     },
     defaultVariants: {
@@ -62,13 +63,14 @@ const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 p-1 text-gray-500 transition-opacity hover:text-gray-700 focus:outline-none focus:ring-2 group-[.destructive]:text-white/90 group-[.destructive]:hover:text-white",
+      "absolute right-2 top-2 p-1 text-current/60 transition-opacity hover:text-current focus:outline-none focus:ring-2",
       className
     )}
     toast-close=""
     {...props}
   >
-    <X className="h-4 w-4" />
+    <span aria-hidden="true" className="text-sm leading-none">✕</span>
+    <span className="sr-only">Close</span>
   </ToastPrimitives.Close>
 ))
 ToastClose.displayName = ToastPrimitives.Close.displayName

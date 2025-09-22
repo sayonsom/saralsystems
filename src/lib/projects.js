@@ -1,4 +1,4 @@
-// Simple client-side projects service for VoltEdge tool
+// Simple client-side projects service for GridSpeed tool
 // Stores projects in localStorage per-user. Replace with Firestore later.
 
 export function getStorageKey(uid) {

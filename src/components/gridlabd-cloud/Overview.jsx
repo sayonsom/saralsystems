@@ -23,7 +23,7 @@ export default function Overview() {
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-3 h-3 bg-[#ea580b] mt-2" />
-                <p className="text-gray-700">VoltEdge code editor with syntax highlighting</p>
+                <p className="text-gray-700">GridSpeed code editor with syntax highlighting</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-3 h-3 bg-[#ea580b] mt-2" />

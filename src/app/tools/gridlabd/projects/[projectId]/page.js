@@ -420,7 +420,7 @@ export default function ProjectEditorPage() {
   if (loading) {
     return (
       <>
-        <Header pageTitle="VoltEdge Editor" />
+        <Header pageTitle="GridSpeed Editor" />
         <div className="min-h-screen flex items-center justify-center pt-12">
           <div className="text-gray-500">Loading project...</div>
         </div>
@@ -436,7 +436,7 @@ export default function ProjectEditorPage() {
   if (!project) {
     return (
       <>
-        <Header pageTitle="VoltEdge Editor" />
+        <Header pageTitle="GridSpeed Editor" />
         <div className="min-h-screen flex items-center justify-center pt-12">
           <div className="text-center">
             <div className="text-gray-500 mb-4">Project not found</div>
@@ -454,7 +454,7 @@ export default function ProjectEditorPage() {
 
   return (
     <ProtectedRoute>
-      <Header pageTitle={`VoltEdge - ${project?.name || ''}`} />
+      <Header pageTitle={`GridSpeed - ${project?.name || ''}`} />
       <div className="min-h-screen bg-gray-50 pt-12">
         {/* Removed wide sub-header bar; controls moved into Files header */}
 

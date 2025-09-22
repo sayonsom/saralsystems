@@ -23,7 +23,7 @@ import {
   Twitter,
 } from "lucide-react";
 
-const BASE = "https://www.voltedge.dev";
+const BASE = "https://www.gridspeed.app";
 
 export default function Portfolio() {
   const [accordionOpen, setAccordionOpen] = useState({
@@ -85,13 +85,13 @@ export default function Portfolio() {
       link: "/tools/vegetation-management",
     },
     {
-      title: "VoltEdge - Smart Grid Planning & Analytics Platform",
+      title: "GridSpeed - Smart Grid Planning & Analytics Platform",
       description:
         "Co-pilot data analytics tool for clean energy developers with GIS-based siting and interconnection analysis.",
       tech: ["React", "GIS", "Python", "Cloud Computing"],
       impact:
         "20% faster renewable integration, 15% increased renewable potential identification.",
-      link: "https://voltedge.dev",
+      link: "https://gridspeed.app",
     },
     {
       title: "PyCANVASS Open Source",

@@ -36,8 +36,8 @@ export default function Header({ pageTitle }) {
   useEffect(() => {
     if (pathname === "/signin") {
       if (user) {
-        // Don't force them to /tools if they navigated to a tool already
-        router.replace("/tools");
+        // Don't force them to /projects if they navigated elsewhere already
+        router.replace("/projects");
       } else {
         setShowLoginModal(true);
       }
@@ -48,7 +48,7 @@ export default function Header({ pageTitle }) {
   useEffect(() => {
     if (!user) return;
     if (showLoginModal) setShowLoginModal(false);
-    if (pathname === "/signin") router.replace("/tools");
+    if (pathname === "/signin") router.replace("/projects");
   }, [user, showLoginModal, router, pathname]);
 
   const menuItems = [
@@ -172,7 +172,7 @@ export default function Header({ pageTitle }) {
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center space-x-2 text-xl font-bold text-gray-900">
               <Image src="/logo.png" alt="Logo" width={28} height={28} />
-              <span>{pageTitle || 'VoltEdge'}</span>
+              <span>{pageTitle || 'GridSpeed'}</span>
             </a>
           </div>
           <div className="hidden md:block">

@@ -65,14 +65,26 @@ export default function ProjectsPage() {
 
   // Initial + on auth ready
   useEffect(() => {
-    if (user) fetchProjects('all', '');
-    else if (!loading) setLoadingProjects(false);
+    if (user) {
+      console.log('[Projects] User authenticated:', user.email, '- fetching projects');
+      // Clear any cached state and fetch fresh projects
+      setProjects([]);
+      setSelectedIds(new Set());
+      setCurrentPage(1);
+      fetchProjects('all', '');
+    } else if (!loading) {
+      console.log('[Projects] No user authenticated - clearing projects');
+      setProjects([]);
+      setSelectedIds(new Set());
+      setLoadingProjects(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading]);
 
   // Reload on view change
   useEffect(() => {
     if (!user) return;
+    console.log('[Projects] View changed to:', view, '- fetching projects');
     fetchProjects(view, search);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
@@ -245,7 +257,7 @@ export default function ProjectsPage() {
   if (loading) {
     return (
       <>
-        <Header pageTitle="VoltEdge Projects" />
+        <Header pageTitle="GridSpeed" />
         <div className="min-h-screen flex items-center justify-center pt-12">
           <div className="text-gray-500">Loading…</div>
         </div>
@@ -259,7 +271,7 @@ export default function ProjectsPage() {
 
   return (
     <ProtectedRoute>
-      <Header pageTitle="VoltEdge Projects" />
+      <Header pageTitle="GridSpeed" />
       <div className="min-h-screen bg-gray-50 pt-12">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-4 text-sm text-gray-500">
@@ -276,7 +288,7 @@ export default function ProjectsPage() {
                   <span className="text-2xl">📁</span>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">No projects yet</h2>
-                <p className="text-gray-600 mb-6">Create your first VoltEdge project to get started.</p>
+                <p className="text-gray-600 mb-6">Create your first GridSpeed project to get started.</p>
                 {(view === 'all' || view === 'owned') && (
                   <button onClick={() => setShowNew(true)} className="px-6 py-3 bg-orange-600 text-white hover:bg-orange-700 transition-colors">Create Project</button>
                 )}
@@ -289,10 +301,10 @@ export default function ProjectsPage() {
                   <span className="text-2xl">⚠️</span>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">Unable to load {titleMap[view] || 'projects'}</h2>
-                <p className="text-gray-600 max-w-md mx-auto mb-4">Encountered a server error while loading these projects. Please retry or contact support at <a href="mailto:hello@voltedge.dev" className="text-orange-600 hover:underline">hello@voltedge.dev</a>.</p>
+                <p className="text-gray-600 max-w-md mx-auto mb-4">Encountered a server error while loading these projects. Please retry or contact support at <a href="mailto:hello@gridspeed.app" className="text-orange-600 hover:underline">hello@gridspeed.app</a>.</p>
                 <div className="flex items-center justify-center gap-3">
                   <button onClick={() => fetchProjects(view, search)} className="px-5 py-2 bg-orange-600 text-white hover:bg-orange-700 text-sm">Retry</button>
-                  <a href="mailto:hello@voltedge.dev" className="px-5 py-2 border border-gray-300 text-sm hover:bg-gray-50">Contact Support</a>
+                  <a href="mailto:hello@gridspeed.app" className="px-5 py-2 border border-gray-300 text-sm hover:bg-gray-50">Contact Support</a>
                 </div>
                 {process.env.NODE_ENV !== 'production' && loadError && (
                   <div className="mt-4 text-xs text-gray-400 select-all">{loadError}</div>

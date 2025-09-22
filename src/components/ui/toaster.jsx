@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastAction } from "./toast"
+import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription } from "./toast"
 import { useToast } from "./use-toast"
 
 export function Toaster() {
@@ -18,7 +18,6 @@ export function Toaster() {
               {description && <ToastDescription>{description}</ToastDescription>}
             </div>
             {action}
-            <ToastAction altText="Close" className="ring-offset-background ring-offset-8 focus:ring-2" />
           </Toast>
         )
       })}

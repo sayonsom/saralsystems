@@ -4,7 +4,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 export async function POST(req, context) {
   try {
-    const { projectId } = (await context).params;
+    const { projectId } = await context.params;
     const body = await req.json();
     const url = `${BASE_URL}/api/projects/${projectId}/share`;
 

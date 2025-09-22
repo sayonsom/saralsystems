@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 
 export async function GET(req, context) {
-  const { projectId } = (await context).params;
+  const { projectId } = await context.params;
   const url = `${BASE_URL}/api/projects/${projectId}`;
   const auth = req.headers.get("authorization");
   const headers = auth ? { Authorization: auth } : {};
@@ -13,7 +13,7 @@ export async function GET(req, context) {
 }
 
 export async function PUT(req, context) {
-  const { projectId } = (await context).params;
+  const { projectId } = await context.params;
   const body = await req.json();
   const url = `${BASE_URL}/api/projects/${projectId}`;
   const auth = req.headers.get("authorization");
@@ -29,7 +29,7 @@ export async function PUT(req, context) {
 }
 
 export async function DELETE(req, context) {
-  const { projectId } = (await context).params;
+  const { projectId } = await context.params;
   const url = `${BASE_URL}/api/projects/${projectId}`;
   const auth = req.headers.get("authorization");
   const headers = auth ? { Authorization: auth } : {};

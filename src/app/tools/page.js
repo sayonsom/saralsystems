@@ -7,7 +7,7 @@ export const metadata = {
   openGraph: {
     title: 'Tools | Saral',
     description: 'Explore Saral tools for grid simulation, smart meter analytics, model generation, satellite resilience, and data center design.',
-    url: 'https://www.voltedge.dev/tools',
+    url: 'https://www.gridspeed.app/tools',
     images: [{ url: '/og.webp', width: 1200, height: 630, alt: 'Saral Tools' }],
     type: 'website',
   },

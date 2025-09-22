@@ -17,8 +17,8 @@ export default function GoogleRedirect() {
         // If returning from redirect, this will resolve to a credential
         const result = await getRedirectResult(auth);
         if (result) {
-          // Already signed in via redirect, go to tools
-          if (!cancelled) router.replace('/tools');
+          // Already signed in via redirect, go to projects
+          if (!cancelled) router.replace('/projects');
           return;
         }
         await signInWithRedirect(auth, provider);

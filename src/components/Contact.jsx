@@ -16,7 +16,7 @@ export default function Contact() {
   return (
     <Section id="contact">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Connect with VoltEdge</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Connect with GridSpeed</h2>
         <p className="text-gray-600 mt-2 mb-8">
           Ready to simplify your energy challenges? Tell us about your project, and our specialists will get in touch.
         </p>

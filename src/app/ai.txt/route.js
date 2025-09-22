@@ -15,7 +15,7 @@ export function GET() {
     "User-agent: Claude-Web",
     "Allow: /",
     "",
-    "Sitemap: https://www.voltedge.dev/sitemap.xml",
+    "Sitemap: https://www.gridspeed.app/sitemap.xml",
   ];
   return new Response(lines.join("\n"), {
     headers: { "Content-Type": "text/plain; charset=utf-8" },

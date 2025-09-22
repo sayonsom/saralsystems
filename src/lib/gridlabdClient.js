@@ -185,6 +185,16 @@ export const projects = {
     });
   },
 
+  // Bulk delete files
+  bulkDelete: async (projectId, data, opts = {}) => {
+    return apiFetch(`/api/projects/${projectId}/files/bulk-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
+      body: JSON.stringify(data),
+      ...opts
+    });
+  },
+
   // File versions: Create version
   createVersion: async (projectId, fileId, data, opts = {}) => {
     return apiFetch(`/api/projects/${projectId}/files/${fileId}/versions`, {

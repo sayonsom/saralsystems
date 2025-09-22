@@ -15,10 +15,10 @@ const sen = Sen({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://www.voltedge.dev"),
+  metadataBase: new URL("https://www.gridspeed.app"),
   title: {
     default: "We minimize risks for Energy Transition",
-    template: "%s | VoltEdge",
+    template: "%s | GridSpeed",
   },
   description:
     "AI-powered services for data center prospecting, energy stack, smart metering, renewable penetration, market policy design, PPA cost analysis, workflow automation, and energy workforce upskilling in India.",
@@ -31,17 +31,17 @@ export const metadata = {
     "workforce upskilling",
   ],
   openGraph: {
-    title: "VoltEdge – Smart Grid and Distribution Systems Planning",
+    title: "GridSpeed – Smart Grid and Distribution Systems Planning",
     description:
       "",
-    url: "https://www.voltedge.dev/",
-    siteName: "VoltEdge",
+    url: "https://www.gridspeed.app/",
+    siteName: "GridSpeed",
     images: [
       {
         url: "/og.webp",
         width: 1200,
         height: 630,
-        alt: "VoltEdge",
+        alt: "GridSpeed",
       },
     ],
     locale: "en_IN",
@@ -52,7 +52,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "VoltEdge – Simplifying India's Energy Transition",
+    title: "GridSpeed – Simplifying India's Energy Transition",
     description:
       "AI-powered services for data center prospecting, PPA cost analysis, workflow automation, and workforce upskilling in India.",
     images: ["/vercel.svg"],
@@ -97,13 +97,13 @@ export default function RootLayout({ children }) {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "VoltEdge",
-              url: "https://www.voltedge.dev",
+              name: "GridSpeed",
+              url: "https://www.gridspeed.app",
               sameAs: [],
-              logo: "https://www.voltedge.dev/logo.png",
+              logo: "https://www.gridspeed.app/logo.png",
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://www.voltedge.dev/search?q={search_term_string}",
+                target: "https://www.gridspeed.app/search?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),
