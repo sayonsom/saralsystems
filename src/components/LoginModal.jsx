@@ -101,7 +101,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
       {/* Modal */}
       <div 
         ref={modalRef}
-        className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6"
+        className="relative bg-white rounded-none shadow-xl w-full max-w-md mx-4 p-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -129,7 +129,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
           onClick={handleGoogleLogin}
           disabled={authing}
           aria-busy={authing}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-none hover:bg-gray-50 transition-colors mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -162,7 +162,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="Enter your email"
                 required
               />
@@ -181,7 +181,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="Enter your password"
                 required
               />
@@ -197,7 +197,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
 
           {/* Error Message */}
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-none">
               {error}
             </div>
           )}
@@ -206,7 +206,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-orange-600 text-white py-3 px-4 rounded-none font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Loading...' : (isSignup ? 'Create Account' : 'Sign In')}
           </button>

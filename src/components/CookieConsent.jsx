@@ -65,7 +65,7 @@ export default function CookieConsent() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50">
       <div className="mx-auto max-w-5xl px-4 pb-4">
-        <div className="rounded-md border border-gray-200 bg-white/95 backdrop-blur p-4 shadow-lg">
+        <div className="rounded-none border border-gray-200 bg-white/95 backdrop-blur p-4 shadow-lg">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <p className="text-sm text-gray-700">
               We use cookies to personalize content and remember your preferences. Please accept cookies for the best experience on our site.

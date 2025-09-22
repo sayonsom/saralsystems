@@ -119,7 +119,7 @@ export default function ProjectsDashboard() {
       <div className="min-h-screen">
         <GridlabdIDE projectName={activeProject.name} />
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-          <button onClick={() => setView("all")} className="px-3 py-2 text-sm rounded-md bg-white border shadow">← Back to projects</button>
+          <button onClick={() => setView("all")} className="px-3 py-2 text-sm rounded-none bg-white border shadow">← Back to projects</button>
         </div>
       </div>
     );
@@ -151,7 +151,7 @@ export default function ProjectsDashboard() {
 
             <div className="px-6 py-4">
               <div className="relative">
-                <input value={search} onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search in projects..." className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                <input value={search} onChange={(e) => setSearch(e.target.value)} type="text" placeholder="Search in projects..." className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
               </div>
             </div>

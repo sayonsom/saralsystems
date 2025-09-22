@@ -341,11 +341,11 @@ export default function Portfolio() {
               </Link>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
-              <a href="#contact" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+              <a href="#contact" className="px-5 py-2.5 bg-indigo-600 text-white rounded-none font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
                 <Calendar className="inline-block w-4 h-4 mr-2" />
                 Book Speaking
               </a>
-              <Link href="/newsletter" className="px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-lg font-semibold hover:border-indigo-400 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+              <Link href="/newsletter" className="px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-none font-semibold hover:border-indigo-400 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
                 <Mail className="inline-block w-4 h-4 mr-2" />
                 Subscribe
               </Link>
@@ -428,7 +428,7 @@ export default function Portfolio() {
                   <span className="text-sm text-gray-500 mt-2 md:mt-0">{job.timeframe}</span>
                 </div>
                 <p className="text-gray-600 mb-3">{job.description}</p>
-                <div className="bg-gradient-to-r from-indigo-50 to-sky-50 rounded-lg p-3">
+                <div className="bg-gradient-to-r from-indigo-50 to-sky-50 rounded-none p-3">
                   <p className="text-sm font-semibold text-sky-700">Impact: {job.impact}</p>
                 </div>
               </div>
@@ -474,7 +474,7 @@ export default function Portfolio() {
               </h2>
               <div className="space-y-6">
                 {books.map((book, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100">
+                  <div key={index} className="bg-white rounded-none shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{book.title}</h3>
                     <p className="text-gray-600 mb-2">{book.description}</p>
                     <div className="flex items-center text-sm text-gray-500">
@@ -494,7 +494,7 @@ export default function Portfolio() {
               </h2>
               <div className="space-y-6">
                 {aiAgents.map((agent, index) => (
-                  <div key={index} className="bg-gradient-to-r from-indigo-50 to-sky-50 rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border border-indigo-100">
+                  <div key={index} className="bg-gradient-to-r from-indigo-50 to-sky-50 rounded-none shadow-sm hover:shadow-md transition-shadow p-6 border border-indigo-100">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{agent.name}</h3>
                     <p className="text-gray-600 mb-2">{agent.description}</p>
                     <span className="inline-block px-3 py-1 bg-white rounded-full text-sm font-semibold text-indigo-600">
@@ -519,7 +519,7 @@ export default function Portfolio() {
               </h2>
               <div className="space-y-6">
                 {education.map((edu, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
+                  <div key={index} className="bg-white rounded-none shadow-sm p-6 border-l-4 border-indigo-500">
                     <h3 className="text-lg font-bold text-gray-900">{edu.degree}</h3>
                     <p className="text-gray-700 font-medium">{edu.institution}</p>
                     <p className="text-gray-600 text-sm mt-1">{edu.focus}</p>
@@ -536,7 +536,7 @@ export default function Portfolio() {
               </h2>
               <div className="grid grid-cols-1 gap-4">
                 {certifications.map((cert, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:border-indigo-300 transition-colors">
+                  <div key={index} className="bg-white rounded-none shadow-sm p-4 border border-gray-100 hover:border-indigo-300 transition-colors">
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3" />
                       <span className="text-gray-800 font-medium">{cert}</span>
@@ -561,7 +561,7 @@ export default function Portfolio() {
           </p>
           <a
             href="mailto:hello@saralsystems.co?subject=Speaking%20Invitation%20for%20Sayonsom%20Chanda"
-            className="inline-flex items-center justify-center bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700"
+            className="inline-flex items-center justify-center bg-indigo-600 text-white px-6 py-3 rounded-none font-semibold hover:bg-indigo-700"
           >
             <Mail className="w-4 h-4 mr-2" /> hello@saralsystems.co
           </a>

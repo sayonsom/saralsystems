@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import GridSpeedComparison from "./GridSpeedComparison";
+import UseCasesFeatures from "./UseCasesFeatures";
+import Image from 'next/image'
 
 const PRIMARY = "#EA580B";
 
@@ -42,7 +45,7 @@ function HeroSection() {
       <div className="grid gap-10 md:grid-cols-2 md:items-center">
         <div>
           <h1 className="text-3xl md:text-5xl font-semibold leading-tight">
-            Faster Grid Planning Without Compliance Risk
+            Faster Grid Planning. No Compliance Risk
           </h1>
           <p className="mt-3 text-neutral-700 max-w-xl">
             Reduce time needed for contingency studies, DER integration group studies, hosting capacity analysis, resiliency planning and DER Group Studies - with proof regulators accept.
@@ -59,66 +62,21 @@ function HeroSection() {
         </div>
 
         <div className="w-full aspect-[16/10] bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-500 text-sm">
-          Hero image/diagram placeholder
+
+          <Image
+      src="https://res.cloudinary.com/dti7egpsg/image/upload/v1758534604/SARAL%20Systems%20Blog/hero_for_now_m97crj.png"
+      width={500}
+      height={500}
+      alt="Picture of the author"
+    />
         </div>
       </div>
     </Section>
   );
 }
 
-function PainPromiseSection() {
-  return (
-    <Section id="pain-promise" alt>
-      <div className="grid gap-10 md:grid-cols-2">
-        <div>
-          <h2 id="pain-promise-title" className="text-xl font-semibold">The old way</h2>
-          <ul className="mt-3 space-y-2 text-neutral-700">
-            <li>Long queues and manual edits</li>
-            <li>Audit packs take days</li>
-            <li>Models stuck in CYME/Synergi silos</li>
-            <li>Risk of non-compliant filings</li>
-          </ul>
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold">The GridSpeed way</h2>
-          <ul className="mt-3 space-y-2 text-neutral-700">
-            <li>Studies in hours</li>
-            <li>AI edits + imports from CYME/Synergi/GIS</li>
-            <li>One-click audit exports</li>
-            <li>Filing checks for regulators</li>
-          </ul>
-        </div>
-      </div>
-    </Section>
-  );
-}
 
-function UseCasesSection() {
-  const items = [
-    ["Load forecasting", "Plan upgrades early."],
-    ["8760 profile generation", "Year-long scenarios fast."],
-    ["EV & DER feasibility", "Hosting and impacts."],
-    ["Transformer upgrades", "Capacity and timing."],
-    ["Feeder studies", "N-1/N-2 at scale."],
-    ["Resiliency & microgrids", "Islanding and recovery."],
-    ["Group studies for DER", "Batch interconnection reviews."],
-    ["Substation studies", "Protection, loading, expansions."],
-    ["Regulatory filings check", "Format, completeness, correctness."],
-  ];
-  return (
-    <Section id="use-cases">
-      <h2 className="text-xl font-semibold">Use cases</h2>
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {items.map(([title, desc]) => (
-          <div key={title} className="border border-neutral-200 p-4 text-sm">
-            <div className="font-semibold">{title}</div>
-            <div className="text-neutral-700">{desc}</div>
-          </div>
-        ))}
-      </div>
-    </Section>
-  );
-}
+/* Replaced legacy UseCasesSection with UseCasesFeatures component */
 
 function CustomerDataIntegrationSection() {
   return (
@@ -327,8 +285,8 @@ export default function Landing() {
   return (
     <div role="main">
       <HeroSection />
-      <PainPromiseSection />
-      <UseCasesSection />
+      <GridSpeedComparison />
+      <UseCasesFeatures />
       <CustomerDataIntegrationSection />
       <CoreFeaturesSection />
       <ScenarioLibrarySection />

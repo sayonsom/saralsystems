@@ -22,7 +22,7 @@ export default function NotFound() {
         <div className="space-y-4">
           <Link 
             href="/posts" 
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-none text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
           >
             View All Posts
           </Link>

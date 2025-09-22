@@ -48,7 +48,7 @@ export default function GridlabdLayout() {
             {/* mini "trusted by" placeholders */}
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 opacity-70">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-10 rounded-lg bg-gray-100" />
+                <div key={i} className="h-10 rounded-none bg-gray-100" />
               ))}
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function GridlabdLayout() {
               { t: "Version & export", d: "Track scenarios and export models/results cleanly." },
             ].map((f) => (
               <div key={f.t} className="rounded-xl border bg-white p-5 shadow-sm">
-                <div className="mb-3 h-10 w-10 rounded-lg bg-indigo-100" />
+                <div className="mb-3 h-10 w-10 rounded-none bg-indigo-100" />
                 <h3 className="font-semibold">{f.t}</h3>
                 <p className="mt-1 text-sm text-gray-600">{f.d}</p>
               </div>
@@ -90,7 +90,7 @@ export default function GridlabdLayout() {
                   <h3 className="font-semibold">{step.t}</h3>
                 </div>
                 <p className="mt-2 text-sm text-gray-600">{step.d}</p>
-                <div className="mt-3 aspect-video w-full rounded-lg bg-gray-100" />
+                <div className="mt-3 aspect-video w-full rounded-none bg-gray-100" />
               </div>
             ))}
           </div>
@@ -107,7 +107,7 @@ export default function GridlabdLayout() {
               { t: "Behavior Modeling", d: "Customer response to price signals & DR events." },
             ].map((card) => (
               <div key={card.t} className="rounded-xl border bg-white p-5 shadow-sm">
-                <div className="aspect-video w-full rounded-lg bg-gray-100 mb-3" />
+                <div className="aspect-video w-full rounded-none bg-gray-100 mb-3" />
                 <h3 className="font-semibold">{card.t}</h3>
                 <p className="mt-1 text-sm text-gray-600">{card.d}</p>
               </div>
@@ -121,10 +121,10 @@ export default function GridlabdLayout() {
             <h3 className="text-xl sm:text-2xl font-bold">Build & run your first feeder in minutes</h3>
             <p className="mt-1 text-white/90">Prompt the model, adjust DERs, launch a cloud run, share results.</p>
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
-              <a href="/sandbox" className="inline-flex items-center justify-center rounded-lg bg-white text-gray-900 px-5 py-3 font-semibold hover:bg-gray-100">
+              <a href="/sandbox" className="inline-flex items-center justify-center rounded-none bg-white text-gray-900 px-5 py-3 font-semibold hover:bg-gray-100">
                 Open Sandbox
               </a>
-              <a href="/docs" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-5 py-3 font-semibold">
+              <a href="/docs" className="inline-flex items-center justify-center rounded-none border border-white/30 px-5 py-3 font-semibold">
                 Read Docs
               </a>
             </div>

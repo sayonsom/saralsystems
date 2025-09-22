@@ -531,7 +531,7 @@ function DataCenterAnalysisTool() {
   const ExecutiveSummary = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-none text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm">Net Present Value</p>
@@ -542,7 +542,7 @@ function DataCenterAnalysisTool() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg text-white">
+        <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-none text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Internal Rate of Return</p>
@@ -553,7 +553,7 @@ function DataCenterAnalysisTool() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-lg text-white">
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-none text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm">Payback Period</p>
@@ -564,7 +564,7 @@ function DataCenterAnalysisTool() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-lg text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-none text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-orange-100 text-sm">EBITDA Margin</p>
@@ -576,7 +576,7 @@ function DataCenterAnalysisTool() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Project Configuration</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
@@ -602,7 +602,7 @@ function DataCenterAnalysisTool() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-none shadow-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Capital Investment Breakdown</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -631,7 +631,7 @@ function DataCenterAnalysisTool() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-none shadow-lg p-6">
           <h3 className="text-lg font-semibold mb-4">10-Year Cash Flow Projection</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
@@ -659,7 +659,7 @@ function DataCenterAnalysisTool() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Risk Analysis Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border-l-4 border-yellow-500 pl-4">
@@ -681,7 +681,7 @@ function DataCenterAnalysisTool() {
 
   const ProjectConfiguration = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Basic Configuration</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -690,7 +690,7 @@ function DataCenterAnalysisTool() {
               type="text"
               value={projectInputs.projectName}
               onChange={(e) => setProjectInputs({ ...projectInputs, projectName: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -699,7 +699,7 @@ function DataCenterAnalysisTool() {
             <select
               value={projectInputs.location}
               onChange={(e) => setProjectInputs({ ...projectInputs, location: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="usa">United States</option>
               <option value="india">India</option>
@@ -712,7 +712,7 @@ function DataCenterAnalysisTool() {
               <select
                 value={projectInputs.state}
                 onChange={(e) => setProjectInputs({ ...projectInputs, state: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="virginia">Virginia</option>
                 <option value="texas">Texas</option>
@@ -727,7 +727,7 @@ function DataCenterAnalysisTool() {
               <select
                 value={projectInputs.indianState}
                 onChange={(e) => setProjectInputs({ ...projectInputs, indianState: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="maharashtra">Maharashtra</option>
                 <option value="karnataka">Karnataka</option>
@@ -745,7 +745,7 @@ function DataCenterAnalysisTool() {
             <select
               value={projectInputs.tier}
               onChange={(e) => setProjectInputs({ ...projectInputs, tier: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="1">Tier 1 (99.671% uptime)</option>
               <option value="2">Tier 2 (99.741% uptime)</option>
@@ -759,7 +759,7 @@ function DataCenterAnalysisTool() {
             <select
               value={projectInputs.deploymentModel}
               onChange={(e) => setProjectInputs({ ...projectInputs, deploymentModel: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="traditional">Traditional Build</option>
               <option value="modular">Modular</option>
@@ -772,7 +772,7 @@ function DataCenterAnalysisTool() {
             <select
               value={projectInputs.businessModel}
               onChange={(e) => setProjectInputs({ ...projectInputs, businessModel: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="colocation">Colocation</option>
               <option value="hyperscale">Hyperscale</option>
@@ -786,7 +786,7 @@ function DataCenterAnalysisTool() {
             <select
               value={projectInputs.coolingType}
               onChange={(e) => setProjectInputs({ ...projectInputs, coolingType: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="air">Air Cooling</option>
               <option value="liquid">Liquid Cooling</option>
@@ -796,7 +796,7 @@ function DataCenterAnalysisTool() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Facility Specifications</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -805,7 +805,7 @@ function DataCenterAnalysisTool() {
               type="number"
               value={projectInputs.facilitySize}
               onChange={(e) => setProjectInputs({ ...projectInputs, facilitySize: parseFloat(e.target.value) || 0 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -815,7 +815,7 @@ function DataCenterAnalysisTool() {
               type="number"
               value={projectInputs.raisedFloorArea}
               onChange={(e) => setProjectInputs({ ...projectInputs, raisedFloorArea: parseFloat(e.target.value) || 0 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -826,7 +826,7 @@ function DataCenterAnalysisTool() {
               value={projectInputs.itLoad}
               onChange={(e) => setProjectInputs({ ...projectInputs, itLoad: parseFloat(e.target.value) || 0 })}
               step="0.5"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -837,7 +837,7 @@ function DataCenterAnalysisTool() {
               value={projectInputs.totalPower}
               onChange={(e) => setProjectInputs({ ...projectInputs, totalPower: parseFloat(e.target.value) || 0 })}
               step="0.5"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -847,7 +847,7 @@ function DataCenterAnalysisTool() {
               type="number"
               value={projectInputs.rackCount}
               onChange={(e) => setProjectInputs({ ...projectInputs, rackCount: parseInt(e.target.value || '0', 10) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -857,7 +857,7 @@ function DataCenterAnalysisTool() {
               type="number"
               value={projectInputs.averageRackDensity}
               onChange={(e) => setProjectInputs({ ...projectInputs, averageRackDensity: parseFloat(e.target.value) || 0 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
@@ -871,7 +871,7 @@ function DataCenterAnalysisTool() {
               onChange={(e) => setProjectInputs({ ...projectInputs, targetPUE: parseFloat(e.target.value) || 1 })}
               step="0.01"
               min="1.0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -882,13 +882,13 @@ function DataCenterAnalysisTool() {
               value={projectInputs.targetWUE}
               onChange={(e) => setProjectInputs({ ...projectInputs, targetWUE: parseFloat(e.target.value) || 0 })}
               step="0.1"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Customer Mix (%)</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
@@ -904,7 +904,7 @@ function DataCenterAnalysisTool() {
               }
               min="0"
               max="100"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -921,7 +921,7 @@ function DataCenterAnalysisTool() {
               }
               min="0"
               max="100"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -938,7 +938,7 @@ function DataCenterAnalysisTool() {
               }
               min="0"
               max="100"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -955,7 +955,7 @@ function DataCenterAnalysisTool() {
               }
               min="0"
               max="100"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
@@ -984,7 +984,7 @@ function DataCenterAnalysisTool() {
     ];
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-none shadow-lg p-6">
           <h3 className="text-lg font-semibold mb-2">CAPEX Breakdown</h3>
           <p className="text-sm text-gray-600 mb-4">Total: ${ (capex.totalCapex/1_000_000).toFixed(2) }M</p>
           <ResponsiveContainer width="100%" height={320}>
@@ -1017,7 +1017,7 @@ function DataCenterAnalysisTool() {
     ];
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-none shadow-lg p-6">
           <h3 className="text-lg font-semibold mb-2">OPEX Breakdown (Annual)</h3>
           <p className="text-sm text-gray-600 mb-4">Total: ${ (opex.totalOpex/1_000_000).toFixed(2) }M</p>
           <ResponsiveContainer width="100%" height={320}>
@@ -1044,7 +1044,7 @@ function DataCenterAnalysisTool() {
     ];
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-none shadow-lg p-6">
           <h3 className="text-lg font-semibold mb-2">Revenue Breakdown (Annual)</h3>
           <p className="text-sm text-gray-600 mb-4">Total: ${ (rev.total/1_000_000).toFixed(2) }M</p>
           <ResponsiveContainer width="100%" height={320}>
@@ -1064,7 +1064,7 @@ function DataCenterAnalysisTool() {
   // New tab: Tax & Incentives
   const TaxIncentives = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Corporate Tax Rates</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -1073,7 +1073,7 @@ function DataCenterAnalysisTool() {
               type="number"
               value={taxConfig.federalRate}
               onChange={(e) => setTaxConfig({ ...taxConfig, federalRate: parseFloat(e.target.value) || 0 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
@@ -1082,7 +1082,7 @@ function DataCenterAnalysisTool() {
               type="number"
               value={taxConfig.stateRate}
               onChange={(e) => setTaxConfig({ ...taxConfig, stateRate: parseFloat(e.target.value) || 0 })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div className="flex items-end">
@@ -1093,7 +1093,7 @@ function DataCenterAnalysisTool() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Depreciation & Bonuses</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -1105,7 +1105,7 @@ function DataCenterAnalysisTool() {
                 ...taxConfig,
                 depreciation: { ...taxConfig.depreciation, bonusDepreciation: parseFloat(e.target.value) || 0 },
               })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div className="col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1119,7 +1119,7 @@ function DataCenterAnalysisTool() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Local Grants ($)</label>
-              <input type="number" value={taxConfig.incentives.localGrants} onChange={(e) => setTaxConfig({ ...taxConfig, incentives: { ...taxConfig.incentives, localGrants: parseFloat(e.target.value) || 0 } })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+              <input type="number" value={taxConfig.incentives.localGrants} onChange={(e) => setTaxConfig({ ...taxConfig, incentives: { ...taxConfig.incentives, localGrants: parseFloat(e.target.value) || 0 } })} className="w-full px-3 py-2 border border-gray-300 rounded-none focus:ring-blue-500 focus:border-blue-500" />
             </div>
           </div>
         </div>
@@ -1130,30 +1130,30 @@ function DataCenterAnalysisTool() {
   // New tab: Risk Analysis
   const RiskAnalysis = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Risk Parameters</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Demand Uncertainty (%)</label>
-            <input type="number" value={projectInputs.demandUncertainty} onChange={(e) => setProjectInputs({ ...projectInputs, demandUncertainty: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+            <input type="number" value={projectInputs.demandUncertainty} onChange={(e) => setProjectInputs({ ...projectInputs, demandUncertainty: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 rounded-none" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Energy Price Volatility (%)</label>
-            <input type="number" value={projectInputs.energyPriceVolatility} onChange={(e) => setProjectInputs({ ...projectInputs, energyPriceVolatility: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+            <input type="number" value={projectInputs.energyPriceVolatility} onChange={(e) => setProjectInputs({ ...projectInputs, energyPriceVolatility: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border border-gray-300 rounded-none" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Construction Delay Risk</label>
-            <select value={projectInputs.constructionDelayRisk} onChange={(e) => setProjectInputs({ ...projectInputs, constructionDelayRisk: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md">
+            <select value={projectInputs.constructionDelayRisk} onChange={(e) => setProjectInputs({ ...projectInputs, constructionDelayRisk: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-none">
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
           </div>
         </div>
-        <button onClick={() => runMonteCarloSimulation(1000)} className="mt-4 inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">Run Monte Carlo (1,000)</button>
+        <button onClick={() => runMonteCarloSimulation(1000)} className="mt-4 inline-flex items-center px-4 py-2 rounded-none bg-blue-600 text-white hover:bg-blue-700">Run Monte Carlo (1,000)</button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-white rounded-none shadow-lg p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="p-4 rounded border">
           <p className="text-sm text-gray-600">P(NPV {'>'} 0)</p>
           <p className="text-2xl font-bold">{simulationResults.pSuccess.toFixed(0)}%</p>
@@ -1177,7 +1177,7 @@ function DataCenterAnalysisTool() {
   // New tab: Sustainability
   const SustainabilityView = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Sustainability Targets</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -1214,7 +1214,7 @@ function DataCenterAnalysisTool() {
   // New tab: Compliance
   const ComplianceView = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <h3 className="text-lg font-semibold mb-4">Compliance & Standards</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -1250,7 +1250,7 @@ function DataCenterAnalysisTool() {
   // New tab: Scenarios
   const ScenariosView = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-none shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Saved Scenarios</h3>
           <button
@@ -1264,7 +1264,7 @@ function DataCenterAnalysisTool() {
                 },
               ])
             }
-            className="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 rounded-none bg-blue-600 text-white hover:bg-blue-700"
           >
             Save Current Scenario
           </button>
@@ -1316,7 +1316,7 @@ function DataCenterAnalysisTool() {
       </div>
 
       {selectedScenarios.length === 2 && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-none shadow-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Scenario Comparison</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {selectedScenarios.map((idx) => (
@@ -1361,7 +1361,7 @@ function DataCenterAnalysisTool() {
           <h1 className="text-3xl font-bold mb-3">Data Center Designer</h1>
           <p className="text-gray-700 mb-6">Plan, size, and analyze data centers—power, cooling, PUE/WUE, costs, IRR/NPV. Compare scenarios and assess risks.</p>
         </header>
-        <section className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <section className="bg-white rounded-none border border-gray-200 p-6 mb-8">
           <h2 className="text-xl font-semibold mb-3">Overview</h2>
           <p className="text-gray-700">Quickly size facilities, estimate capex/opex, and evaluate pricing and utilization with scenario comparisons and risk analysis.</p>
           <ul className="list-disc list-inside text-gray-700 mt-3 space-y-1">
@@ -1370,7 +1370,7 @@ function DataCenterAnalysisTool() {
             <li>Scenario and sensitivity analysis</li>
           </ul>
         </section>
-        <section className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <section className="bg-white rounded-none border border-gray-200 p-6 mb-8">
           <h2 className="text-xl font-semibold mb-3">How it works</h2>
           <ol className="list-decimal list-inside text-gray-700 space-y-2">
             <li>Define project and market assumptions.</li>
@@ -1378,7 +1378,7 @@ function DataCenterAnalysisTool() {
             <li>Compare scenarios and generate a summary report.</li>
           </ol>
         </section>
-        <section className="bg-white rounded-lg border border-gray-200 p-6">
+        <section className="bg-white rounded-none border border-gray-200 p-6">
           <h2 className="text-xl font-semibold mb-3">FAQ</h2>
           <div className="space-y-3">
             <div>
@@ -1427,7 +1427,7 @@ function DataCenterAnalysisTool() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-none font-medium transition-all whitespace-nowrap ${
                 activeTab === tab.id ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >

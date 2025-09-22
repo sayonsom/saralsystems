@@ -221,7 +221,7 @@ export default async function PostPage({ params }) {
                       <a
                         key={i}
                         href={`/posts?tag=${encodeURIComponent(tag)}`}
-                        className="px-3 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
+                        className="px-3 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-none hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
                       >
                         #{tag}
                       </a>
@@ -231,7 +231,7 @@ export default async function PostPage({ params }) {
               )}
 
               {/* Call to action */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-8">
+              <div className="bg-gray-50 rounded-none p-6 mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Ready to try GridSpeed?
                 </h3>
@@ -240,7 +240,7 @@ export default async function PostPage({ params }) {
                 </p>
                 <a
                   href="/tools/gridlabd"
-                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-none hover:bg-indigo-700 transition-colors"
                 >
                   Open GridSpeed IDE
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

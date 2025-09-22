@@ -42,7 +42,7 @@ export default function PostCard({ post, delay = 0, featured = false }) {
 
   return (
     <article 
-      className="bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-gray-300 h-full flex flex-col"
+      className="bg-white rounded-none border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-gray-300 h-full flex flex-col"
       style={{
         animation: `fadeInUp 0.6s ease-out ${delay}s both`,
       }}

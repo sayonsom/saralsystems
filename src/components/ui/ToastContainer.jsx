@@ -41,7 +41,7 @@ export default function ToastContainer() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`w-80 ${variantStyles(t.variant)} border shadow-md px-3 py-2 flex items-start gap-2 rounded-md`}
+          className={`w-80 ${variantStyles(t.variant)} border shadow-md px-3 py-2 flex items-start gap-2 rounded-none`}
         >
           <div className="flex-1">
             {t.title && <div className="text-sm font-semibold text-current">{t.title}</div>}

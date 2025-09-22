@@ -62,7 +62,7 @@ export default function ArticleMeterGate({ slug, children }) {
         {children}
       </div>
       <div className="absolute inset-0 flex items-center justify-center p-6">
-        <div className="max-w-lg w-full rounded-md border border-gray-200 bg-white/95 backdrop-blur shadow-xl p-6 text-center">
+        <div className="max-w-lg w-full rounded-none border border-gray-200 bg-white/95 backdrop-blur shadow-xl p-6 text-center">
           <h3 className="text-xl font-semibold mb-2">You've reached your 5 free articles this month</h3>
           <p className="text-sm text-gray-700 mb-4">
             Create a free account to keep reading and access all Insights.

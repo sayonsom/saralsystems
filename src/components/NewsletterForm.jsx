@@ -54,7 +54,7 @@ export default function NewsletterForm() {
           placeholder="you@company.com"
           autoComplete="email"
           required
-          className="flex-1 rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-text-dark placeholder-neutral-400 outline-none ring-0 transition focus:border-amber-300 focus:ring-2 focus:ring-amber-300 dark:border-amber-300/40 dark:bg-white dark:text-text-dark dark:placeholder-neutral-400"
+          className="flex-1 rounded-none border border-neutral-300 bg-white px-4 py-2.5 text-text-dark placeholder-neutral-400 outline-none ring-0 transition focus:border-amber-300 focus:ring-2 focus:ring-amber-300 dark:border-amber-300/40 dark:bg-white dark:text-text-dark dark:placeholder-neutral-400"
           aria-label="Email address"
         />
         <Button

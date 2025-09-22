@@ -364,7 +364,7 @@ function Header({ onNew, onSave, onRun, onCancel, status, title }) {
         <button
           type="button"
           onClick={onNew}
-          className="inline-flex items-center gap-1 text-sm font-medium rounded-md px-3 py-2"
+          className="inline-flex items-center gap-1 text-sm font-medium rounded-none px-3 py-2"
           style={{ background: COLORS.secondary, color: COLORS.text, border: `1px solid ${COLORS.border}` }}
         >
           <IconNew />
@@ -373,7 +373,7 @@ function Header({ onNew, onSave, onRun, onCancel, status, title }) {
         <button
           type="button"
           onClick={onSave}
-          className="inline-flex items-center gap-1 text-sm font-medium rounded-md px-3 py-2"
+          className="inline-flex items-center gap-1 text-sm font-medium rounded-none px-3 py-2"
           style={{ background: COLORS.secondary, color: COLORS.text, border: `1px solid ${COLORS.border}` }}
         >
           <IconSave />
@@ -383,7 +383,7 @@ function Header({ onNew, onSave, onRun, onCancel, status, title }) {
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex items-center gap-1 text-sm font-medium rounded-md px-3 py-2"
+            className="inline-flex items-center gap-1 text-sm font-medium rounded-none px-3 py-2"
             style={{ background: COLORS.secondary, color: COLORS.warning, border: `1px solid ${COLORS.border}` }}
           >
             Cancel
@@ -392,7 +392,7 @@ function Header({ onNew, onSave, onRun, onCancel, status, title }) {
         <button
           type="button"
           onClick={onRun}
-          className="inline-flex items-center gap-1 text-sm font-medium rounded-md px-3 py-2 text-white"
+          className="inline-flex items-center gap-1 text-sm font-medium rounded-none px-3 py-2 text-white"
           style={{ background: COLORS.primary }}
         >
           <IconPlay />
@@ -452,7 +452,7 @@ function ConsoleView({ lines }) {
 function ErrorPanel({ message }) {
   if (!message) return null;
   return (
-    <div className="rounded-md p-4 mb-4" style={{ background: "#4d1f24", border: `1px solid #da3633` }}>
+    <div className="rounded-none p-4 mb-4" style={{ background: "#4d1f24", border: `1px solid #da3633` }}>
       <div className="flex items-center gap-2 font-semibold" style={{ color: COLORS.error }}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
           <path d="M8.982 1.566a1.13 1.13 0 00-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
@@ -548,13 +548,13 @@ function FileExplorer({
       <div className="flex items-center justify-between px-3 py-3" style={{ background: COLORS.bg, borderBottom: `1px solid ${COLORS.border}` }}>
         <div className="text-sm font-semibold" style={{ color: COLORS.text }}>{projectName}</div>
         <div className="flex items-center gap-1">
-          <button title="New File" onClick={() => onCreateFile(selectedFolder)} className="rounded-md p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
+          <button title="New File" onClick={() => onCreateFile(selectedFolder)} className="rounded-none p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
             <IconNew />
           </button>
-          <button title="New Folder" onClick={() => onCreateFolder(selectedFolder)} className="rounded-md p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
+          <button title="New Folder" onClick={() => onCreateFolder(selectedFolder)} className="rounded-none p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2H2v11h12V4H9L7 2z"/><path d="M11 8v3M9.5 9.5h3"/></svg>
           </button>
-          <button title="Upload" onClick={() => inputRef.current?.click()} className="rounded-md p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
+          <button title="Upload" onClick={() => inputRef.current?.click()} className="rounded-none p-1" style={{ color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, background: COLORS.secondary }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.646 1.146a.5.5 0 01.708 0l3 3a.5.5 0 01-.708.708L8.5 2.707V12a.5.5 0 01-1 0V2.707L5.354 4.854a.5.5 0 01-.708-.708l3-3z"/><path d="M1 13.5h14a1 1 0 001-1V11a.5.5 0 00-1 0v1.5H1V11a.5.5 0 00-1 0v1.5a1 1 0 001 1z"/></svg>
           </button>
           <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => e.target.files && onUpload(Array.from(e.target.files), selectedFolder)} />
@@ -1121,7 +1121,7 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
           type="button"
           onClick={formatCode}
           aria-label="Format code"
-          className="inline-flex items-center justify-center rounded-md"
+          className="inline-flex items-center justify-center rounded-none"
           style={{ background: COLORS.secondary, color: COLORS.text, border: `1px solid ${COLORS.border}`, padding: "6px 10px" }}
         >
           <IconFormat />
@@ -1130,7 +1130,7 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
         <button
           type="button"
           onClick={() => renamePath(activeFilePath)}
-          className="inline-flex items-center justify-center rounded-md"
+          className="inline-flex items-center justify-center rounded-none"
           style={{ background: COLORS.secondary, color: COLORS.textMuted, border: `1px solid ${COLORS.border}`, padding: "6px 10px" }}
           title="Rename"
         >
@@ -1139,7 +1139,7 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
         <button
           type="button"
           onClick={() => deletePath(activeFilePath)}
-          className="inline-flex items-center justify-center rounded-md"
+          className="inline-flex items-center justify-center rounded-none"
           style={{ background: COLORS.secondary, color: COLORS.error, border: `1px solid ${COLORS.border}`, padding: "6px 10px" }}
           title="Delete"
         >
@@ -1175,7 +1175,7 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
         <input
           value={mainFilename}
           onChange={(e) => setMainFilename(e.target.value)}
-          className="px-2 py-1 rounded-md"
+          className="px-2 py-1 rounded-none"
           style={{ background: COLORS.secondary, border: `1px solid ${COLORS.border}`, color: COLORS.text }}
         />
       </div>
@@ -1268,12 +1268,12 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
             {activeTab === "console" && (
               <>
                 {!streamAvailable && (
-                  <div className="mb-3 text-xs rounded-md px-3 py-2" style={{background:'#4d1f24',border:'1px solid #da3633',color:'#ffdcd7'}}>
+                  <div className="mb-3 text-xs rounded-none px-3 py-2" style={{background:'#4d1f24',border:'1px solid #da3633',color:'#ffdcd7'}}>
                     Streaming unavailable—will display final logs when simulation completes.
                   </div>
                 )}
                 {anonymousWarning && (
-                  <div className="mb-3 text-xs rounded-md px-3 py-2" style={{background:'#5a3e1b',border:'1px solid #9e6a03',color:'#ffd8a8'}}>
+                  <div className="mb-3 text-xs rounded-none px-3 py-2" style={{background:'#5a3e1b',border:'1px solid #9e6a03',color:'#ffd8a8'}}>
                     Anonymous run: results are temporary and not linked to an account.
                   </div>
                 )}
@@ -1308,16 +1308,16 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
                           } catch {}
                         };
                         return (
-                          <div key={name} className="flex items-center gap-2 rounded-md px-3 py-2" style={{ background: COLORS.bgMuted }}>
+                          <div key={name} className="flex items-center gap-2 rounded-none px-3 py-2" style={{ background: COLORS.bgMuted }}>
                             <IconDoc className="shrink-0" fill={COLORS.success} />
                             <span className="text-sm" style={{ color: COLORS.text }}>{name}</span>
                             <span className="text-xs ml-auto mr-3" style={{ color: "#6e7681" }}>{size}</span>
-                            <button onClick={onDownload} className="text-xs px-2 py-1 rounded-md" style={{ background: COLORS.secondary, border: `1px solid ${COLORS.border}`, color: COLORS.text }}>Download</button>
+                            <button onClick={onDownload} className="text-xs px-2 py-1 rounded-none" style={{ background: COLORS.secondary, border: `1px solid ${COLORS.border}`, color: COLORS.text }}>Download</button>
                           </div>
                         );
                       })}
                     </div>
-                    <div className="rounded-md p-4" style={{ background: COLORS.bgMuted }}>
+                    <div className="rounded-none p-4" style={{ background: COLORS.bgMuted }}>
                       <h4 className="text-sm mb-2" style={{ color: COLORS.textMuted }}>
                         Sample Output (meter_output.csv):
                       </h4>
@@ -1341,7 +1341,7 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
                   </div>
                 ) : (
                   <>
-                    <div className="rounded-md" style={{ background: COLORS.bgMuted }}>
+                    <div className="rounded-none" style={{ background: COLORS.bgMuted }}>
                       <div className="px-5 pt-5 text-sm font-semibold" style={{ color: COLORS.text }}>
                         Voltage Profile Over Time
                       </div>
@@ -1349,20 +1349,20 @@ export default function GridlabdIDE({ projectName = "Untitled Project" }) {
                         <canvas ref={canvasRef} width={800} height={320} />
                       </div>
                     </div>
-                    <div className="rounded-md" style={{ background: COLORS.bgMuted }}>
+                    <div className="rounded-none" style={{ background: COLORS.bgMuted }}>
                       <div className="px-5 pt-5 text-sm font-semibold" style={{ color: COLORS.text }}>
                         Power Flow Summary
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-5">
-                        <div className="rounded-md text-center p-5" style={{ background: COLORS.bg }}>
+                        <div className="rounded-none text-center p-5" style={{ background: COLORS.bg }}>
                           <div className="text-xs mb-2" style={{ color: "#6e7681" }}>Total Load</div>
                           <div className="text-2xl font-semibold" style={{ color: COLORS.accent }}>1.2 MW</div>
                         </div>
-                        <div className="rounded-md text-center p-5" style={{ background: COLORS.bg }}>
+                        <div className="rounded-none text-center p-5" style={{ background: COLORS.bg }}>
                           <div className="text-xs mb-2" style={{ color: "#6e7681" }}>System Losses</div>
                           <div className="text-2xl font-semibold" style={{ color: COLORS.warning }}>45.3 kW</div>
                         </div>
-                        <div className="rounded-md text-center p-5" style={{ background: COLORS.bg }}>
+                        <div className="rounded-none text-center p-5" style={{ background: COLORS.bg }}>
                           <div className="text-xs mb-2" style={{ color: "#6e7681" }}>Voltage Deviation</div>
                           <div className="text-2xl font-semibold" style={{ color: COLORS.success }}>0.8%</div>
                         </div>

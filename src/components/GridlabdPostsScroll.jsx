@@ -103,7 +103,7 @@ export default function GridlabdPostsScroll({
           </div>
           <div className="flex gap-6 animate-pulse">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-80 h-72 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="flex-shrink-0 w-80 h-72 bg-gray-200 rounded-none"></div>
             ))}
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function GridlabdPostsScroll({
                 href={`/posts/${post.slug}`}
                 className="flex-shrink-0 w-80 group snap-start"
               >
-                <article className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 h-full">
+                <article className="bg-white border border-gray-200 rounded-none overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 h-full">
                   {/* Header with gradient */}
                   <div className="h-32 bg-gradient-to-br from-indigo-500 to-blue-600 relative overflow-hidden">
                     <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all duration-300"></div>
@@ -195,7 +195,7 @@ export default function GridlabdPostsScroll({
               href="/posts?tag=gridlabd"
               className="flex-shrink-0 w-80 group snap-start"
             >
-              <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg h-full flex items-center justify-center group-hover:border-indigo-400 group-hover:bg-indigo-50 transition-all duration-300">
+              <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-none h-full flex items-center justify-center group-hover:border-indigo-400 group-hover:bg-indigo-50 transition-all duration-300">
                 <div className="text-center p-6">
                   <div className="w-12 h-12 mx-auto mb-3 bg-gray-200 rounded-full flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
                     <svg className="w-6 h-6 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,7 +230,7 @@ export default function GridlabdPostsScroll({
         <div className="text-center mt-8">
           <Link 
             href="/posts?tag=gridlabd"
-            className="inline-flex items-center px-6 py-3 border-2 border-indigo-600 text-indigo-600 font-medium rounded-lg hover:bg-indigo-600 hover:text-white transition-all duration-300"
+            className="inline-flex items-center px-6 py-3 border-2 border-indigo-600 text-indigo-600 font-medium rounded-none hover:bg-indigo-600 hover:text-white transition-all duration-300"
           >
             View All GridLAB-D Posts
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

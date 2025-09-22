@@ -186,7 +186,7 @@ async function PostsPage({ searchParams }) {
           {(selectedTag || selectedCategory) && (
             <Link
               href="/posts"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-none text-white bg-indigo-600 hover:bg-indigo-700"
             >
               View All Posts
             </Link>
@@ -204,7 +204,7 @@ async function PostsPage({ searchParams }) {
                 ...(selectedCategory && { category: selectedCategory }),
                 page: (page - 1).toString()
               }).toString()}`}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-none hover:bg-gray-50"
             >
               Previous
             </Link>
@@ -231,7 +231,7 @@ async function PostsPage({ searchParams }) {
                     ...(selectedCategory && { category: selectedCategory }),
                     page: pageNum.toString()
                   }).toString()}`}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
+                  className={`px-3 py-2 text-sm font-medium rounded-none ${
                     pageNum === page
                       ? 'text-white bg-indigo-600'
                       : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
@@ -251,7 +251,7 @@ async function PostsPage({ searchParams }) {
                 ...(selectedCategory && { category: selectedCategory }),
                 page: (page + 1).toString()
               }).toString()}`}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-none hover:bg-gray-50"
             >
               Next
             </Link>

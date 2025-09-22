@@ -248,7 +248,7 @@ export default function Page() {
                 type="button"
                 onClick={runSimulation}
                 disabled={isSimulating}
-                className="w-full inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-3 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex items-center justify-center rounded-none bg-emerald-600 px-4 py-3 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSimulating ? "Simulating…" : "Simulate"}
               </button>
