@@ -42,14 +42,14 @@ function HeroSection() {
       <div className="grid gap-10 md:grid-cols-2 md:items-center">
         <div>
           <h1 className="text-3xl md:text-5xl font-semibold leading-tight">
-            Plan smarter. Stay sovereign.
+            Faster Grid Planning Without Compliance Risk
           </h1>
           <p className="mt-3 text-neutral-700 max-w-xl">
-            GridLAB-D studies with AI model editing. Runs on-prem or cloud.
+            Reduce time needed for contingency studies, DER integration group studies, hosting capacity analysis, resiliency planning and DER Group Studies - with proof regulators accept.
           </p>
           <div className="mt-6 flex gap-3">
             <FlatButton href="/signin" variant="primary" title="Create Free Account">
-              Create Free Account
+              Explore the Platform
             </FlatButton>
             <FlatButton href="/contact" variant="outline" title="Request a Demo">
               Request a Demo
