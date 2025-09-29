@@ -16,6 +16,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import ShareModal from '@/components/ShareModal';
 import JSZip from 'jszip';
 import AIChatbot from '@/components/AIChatbot';
+import Designer from '@/components/load-profile/Designer';
 
 const MonacoEditor = dynamic(
   () => import('@monaco-editor/react').then((mod) => mod.default),
@@ -363,21 +364,62 @@ export default function ProjectEditorPage() {
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="bg-white border-b border-gray-200 px-4">
               <div className="flex space-x-6">
-                <button onClick={() => setActiveTab('code')} className={`py-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === 'code' ? 'text-orange-600 border-orange-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}>Code Editor</button>
-                <button onClick={() => setActiveTab('outputs')} className={`py-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === 'outputs' ? 'text-orange-600 border-orange-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}>Outputs</button>
+                <button
+                  onClick={() => setActiveTab('code')}
+                  className={`py-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === 'code' ? 'text-orange-600 border-orange-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
+                >
+                  Code Editor
+                </button>
+                <button
+                  onClick={() => setActiveTab('outputs')}
+                  className={`py-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === 'outputs' ? 'text-orange-600 border-orange-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
+                >
+                  Outputs
+                </button>
+                <button
+                  onClick={() => setActiveTab('designer')}
+                  className={`py-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === 'designer' ? 'text-orange-600 border-orange-600' : 'text-gray-500 border-transparent hover:text-gray-700'}`}
+                  title="Load Profile Designer"
+                  aria-label="Load Profile Designer"
+                >
+                  Load Designer
+                </button>
               </div>
             </div>
             <div className="flex-1 bg-white overflow-hidden">
               {activeTab === 'code' ? (
                 <div className="h-full">
                   {selectedFile ? (
-                    <MonacoEditor height="100%" language="plaintext" theme="vs-light" value={fileContent} onChange={handleContentChange} options={{ fontSize: 14, minimap: { enabled: false }, wordWrap: 'on', automaticLayout: true, scrollBeyondLastLine: false, tabSize: 2, fontFamily: 'JetBrains Mono, monospace' }} />
+                    <MonacoEditor
+                      height="100%"
+                      language="plaintext"
+                      theme="vs-light"
+                      value={fileContent}
+                      onChange={handleContentChange}
+                      options={{
+                        fontSize: 14,
+                        minimap: { enabled: false },
+                        wordWrap: 'on',
+                        automaticLayout: true,
+                        scrollBeyondLastLine: false,
+                        tabSize: 2,
+                        fontFamily: 'JetBrains Mono, monospace',
+                      }}
+                    />
                   ) : (
-                    <div className="h-full flex items-center justify-center text-gray-500">Select a file to edit or create a new file</div>
+                    <div className="h-full flex items-center justify-center text-gray-500">
+                      Select a file to edit or create a new file
+                    </div>
                   )}
                 </div>
+              ) : activeTab === 'outputs' ? (
+                <OutputsTab
+                  simulations={simulations}
+                  selectedProjectId={projectId}
+                  addConsoleMessage={addConsoleMessage}
+                />
               ) : (
-                <OutputsTab simulations={simulations} selectedProjectId={projectId} addConsoleMessage={addConsoleMessage} />
+                <Designer projectId={projectId} />
               )}
             </div>
           </div>
