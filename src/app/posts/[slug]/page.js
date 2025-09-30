@@ -218,13 +218,13 @@ export default async function PostPage({ params }) {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Related Topics</h3>
                   <div className="flex flex-wrap gap-2">
                     {post.tags.map((tag, i) => (
-                      <a
+                      <Link
                         key={i}
                         href={`/posts?tag=${encodeURIComponent(tag)}`}
                         className="px-3 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-none hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
                       >
                         #{tag}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default async function PostPage({ params }) {
                 <p className="text-gray-600 mb-4">
                   Start modeling power systems in your browser with our cloud-based GridSpeed platform.
                 </p>
-                <a
+                <Link
                   href="/tools/gridlabd"
                   className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-none hover:bg-indigo-700 transition-colors"
                 >
@@ -246,7 +246,7 @@ export default async function PostPage({ params }) {
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
-                </a>
+                </Link>
               </div>
 
               <NewsletterForm />

@@ -2,6 +2,7 @@
 // Map-first country page (replaces tabbed layout)
 
 import CountryMapFirstLayout from '@/components/CountryMapFirstLayout';
+import Link from 'next/link';
 import { getAllCountryCodes, getCountryByCode } from '@/data/countries';
 
 // Generate metadata for SEO
@@ -142,13 +143,13 @@ export default async function CountryPage(props) {
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">Country Not Found</h1>
           <p className="mb-6" style={{ color: '#aaa' }}>The country code "{countryCode}" is not available.</p>
-          <a
+          <Link
             href="/"
             className="inline-block px-6 py-3 font-semibold"
             style={{ background: '#ea580b', color: '#0f0f0f', border: '1px solid #3a3a3a' }}
           >
             Go to Home
-          </a>
+          </Link>
         </div>
       </div>
     );

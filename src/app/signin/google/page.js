@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function GoogleRedirect() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function GoogleRedirect() {
         ) : (
           <div>
             <p className="text-red-600 mb-4">{error}</p>
-            <a href="/signin" className="text-orange-600 hover:text-orange-700 font-semibold">Go back</a>
+            <Link href="/signin" className="text-orange-600 hover:text-orange-700 font-semibold">Go back</Link>
           </div>
         )}
       </div>
