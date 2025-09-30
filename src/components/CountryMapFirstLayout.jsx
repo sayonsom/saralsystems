@@ -4,9 +4,15 @@
 import { useState, useMemo } from 'react';
 import ElectricityMap from '@/components/ElectricityMaps';
 import CountryTimeSeries from '@/components/CountryTimeSeries';
+import { COUNTRY_DATA } from '@/data/countries';
 
 export default function CountryMapFirstLayout({ countryCode, country }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [selectedSlug, setSelectedSlug] = useState(null);
+  const panelCountry = useMemo(() => {
+    if (!selectedSlug) return null;
+    return COUNTRY_DATA[selectedSlug] || null;
+  }, [selectedSlug]);
   const accent = '#ea580b';
   const palette = useMemo(() => ({
     darkest: '#0f0f0f',
@@ -21,7 +27,7 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
     e: '#eee',
   }), []);
 
-  const mix = country?.electricity?.sources || [];
+  const mix = panelCountry?.electricity?.sources || [];
 
   const { carbonSeries, mixSeries72 } = useMemo(() => {
     const end = new Date();
@@ -36,7 +42,7 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
     }
 
     // Carbon intensity around base with smooth variation
-    const baseI = country?.electricity?.emissions?.intensity ?? 300;
+    const baseI = panelCountry?.electricity?.emissions?.intensity ?? 300;
     const carbonSeries = ts.map((d, idx) => {
       const variation = 30 * Math.sin(idx / 8) + 10 * Math.cos(idx / 5);
       const value = Math.max(50, Math.round(baseI + variation));
@@ -67,10 +73,10 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
     });
 
     return { carbonSeries, mixSeries72 };
-  }, [countryCode, country]);
+  }, [selectedSlug, panelCountry, mix]);
 
   return (
-    <div className="relative h-screen w-full saral-map-first" style={{ backgroundColor: '#0f0f0f', color: '#eee' }}>
+    <div className="relative w-full saral-map-first" style={{ backgroundColor: '#0f0f0f', color: '#eee', height: 'calc(100vh - 48px)', marginTop: 48 }}>
       <div className="absolute inset-0">
         <ElectricityMap
           country={countryCode}
@@ -78,49 +84,52 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
           coordinates={country?.coordinates}
           embedded={true}
           showHoverPanel={false}
-          onViewDetails={() => setOpen(true)}
+          onViewDetails={(slug) => {
+            if (slug && COUNTRY_DATA[slug]) {
+              setSelectedSlug(slug);
+              setOpen(true);
+            }
+          }}
         />
       </div>
 
-      {/* Toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
-        aria-label={open ? 'Close sidebar' : 'Open sidebar'}
-        className="absolute top-4 left-4 z-50 h-10 px-3 font-semibold"
-        style={{
-          backgroundColor: accent,
-          color: '#0f0f0f',
-          border: '1px solid #3a3a3a'
-        }}
-      >
-        {open ? 'Hide panels' : 'Show panels'}
-      </button>
 
-      {/* Left Sidebar */}
+      {/* Left Sidebar (only when a selected country with data is available) */}
       <aside
         className="absolute top-0 left-0 h-full z-40 overflow-y-auto"
         style={{
-          width: open ? 320 : 0,
+          width: open && panelCountry ? 320 : 0,
           backgroundColor: palette.p1,
           borderRight: `1px solid ${palette.p3}`,
           transition: 'transform 200ms ease, width 200ms ease',
-          transform: open ? 'translateX(0)' : 'translateX(-100%)'
+          transform: open && panelCountry ? 'translateX(0)' : 'translateX(-100%)'
         }}
       >
         {/* Header */}
-        <div style={{ backgroundColor: palette.p2, borderBottom: `1px solid ${palette.p3}` }} className="px-4 py-4">
+        <div style={{ backgroundColor: palette.p2, borderBottom: `1px solid ${palette.p3}`, position: 'relative' }} className="px-4 py-4">
+          {/* Close (X) icon */}
+          <button
+            aria-label="Close sidebar"
+            onClick={() => setOpen(false)}
+            style={{ position: 'absolute', top: 8, right: 8, backgroundColor: palette.p3, border: `1px solid ${palette.p4}`, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={palette.e} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 flex items-center justify-center" style={{ backgroundColor: palette.p3 }}>
-              <span className="text-2xl">{country?.flag}</span>
+              <span className="text-2xl">{panelCountry?.flag}</span>
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold" style={{ color: palette.e }}>{country?.name}</h2>
+                <h2 className="text-lg font-bold" style={{ color: palette.e }}>{panelCountry?.name}</h2>
                 <span className="text-xs px-1 py-0.5" style={{ backgroundColor: palette.p3, color: palette.a, border: `1px solid ${palette.p4}` }}>
-                  {country?.code}
+                  {panelCountry?.code}
                 </span>
               </div>
-              <p className="text-xs" style={{ color: palette.a }}>{country?.region}</p>
+              <p className="text-xs" style={{ color: palette.a }}>{panelCountry?.region}</p>
             </div>
           </div>
         </div>
@@ -129,12 +138,12 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
         <div className="px-4 py-4" style={{ borderBottom: `1px solid ${palette.p3}` }}>
           <h3 className="text-sm font-semibold mb-3" style={{ color: palette.e }}>Key metrics</h3>
           <div className="grid grid-cols-2 gap-3">
-            <Metric label="Production" value={`${country?.electricity?.production?.total} TWh`} accent={accent} />
-            <Metric label="Renewables" value={`${country?.electricity?.renewable?.percentage}%`} accent={accent} />
-            <Metric label="Carbon" value={`${country?.electricity?.emissions?.intensity} gCO₂/kWh`} accent={accent} />
-            <Metric label="Capacity" value={`${country?.electricity?.capacity?.total} GW`} accent={accent} />
-            <Metric label="Peak demand" value={`${country?.electricity?.production?.peakDemand} GW`} accent={accent} />
-            <Metric label="Reliability" value={`${country?.electricity?.grid?.reliability}%`} accent={accent} />
+            <Metric label="Production" value={`${panelCountry?.electricity?.production?.total} TWh`} accent={accent} />
+            <Metric label="Renewables" value={`${panelCountry?.electricity?.renewable?.percentage}%`} accent={accent} />
+            <Metric label="Carbon" value={`${panelCountry?.electricity?.emissions?.intensity} gCO₂/kWh`} accent={accent} />
+            <Metric label="Capacity" value={`${panelCountry?.electricity?.capacity?.total} GW`} accent={accent} />
+            <Metric label="Peak demand" value={`${panelCountry?.electricity?.production?.peakDemand} GW`} accent={accent} />
+            <Metric label="Reliability" value={`${panelCountry?.electricity?.grid?.reliability}%`} accent={accent} />
           </div>
         </div>
 
@@ -160,10 +169,10 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
         <div className="px-4 py-4">
           <h3 className="text-sm font-semibold mb-3" style={{ color: palette.e }}>Grid</h3>
           <ul className="space-y-2 text-xs" style={{ color: palette.c }}>
-            <li className="flex justify-between"><span>Losses</span><span>{country?.electricity?.grid?.losses}%</span></li>
-            <li className="flex justify-between"><span>Smart meters</span><span>{country?.electricity?.grid?.smartMeters}%</span></li>
-            {country?.electricity?.grid?.substations && (
-              <li className="flex justify-between"><span>Substations</span><span>{country?.electricity?.grid?.substations}</span></li>
+            <li className="flex justify-between"><span>Losses</span><span>{panelCountry?.electricity?.grid?.losses}%</span></li>
+            <li className="flex justify-between"><span>Smart meters</span><span>{panelCountry?.electricity?.grid?.smartMeters}%</span></li>
+            {panelCountry?.electricity?.grid?.substations && (
+              <li className="flex justify-between"><span>Substations</span><span>{panelCountry?.electricity?.grid?.substations}</span></li>
             )}
           </ul>
         </div>

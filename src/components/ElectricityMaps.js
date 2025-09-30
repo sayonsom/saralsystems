@@ -83,6 +83,7 @@ export default function ElectricityMap({
   const [selectedData, setSelectedData] = useState(null);
   const [mapReady, setMapReady] = useState(false);
   const [noWebGL, setNoWebGL] = useState(false);
+  const [activeMetric, setActiveMetric] = useState('carbon'); // 'reserve' | 'carbon' | 'price' | 'renewable'
 
   // Reverse lookup: ISO_A2 -> slug
   const isoToSlug = useMemo(() => {
@@ -131,6 +132,113 @@ export default function ElectricityMap({
     return 'red';
   };
 
+  // Carbon intensity scale for map + legend
+  const carbonScale = useMemo(() => ({
+    stops: [
+      0, '#27ae60',
+      300, '#f1c40f',
+      600, '#8b5e3c',
+      900, '#5a3d27',
+      1200, '#2b2b2b',
+      1500, '#1a1a1a'
+    ],
+    min: 0,
+    max: 1500,
+    ticks: [0, 300, 600, 900, 1200, 1500]
+  }), []);
+
+  const carbonGradientCSS = useMemo(() => {
+    const colors = ['#27ae60', '#f1c40f', '#8b5e3c', '#5a3d27', '#2b2b2b', '#1a1a1a'];
+    const step = 100 / (colors.length - 1);
+    return `linear-gradient(to right, ${colors.map((c, i) => `${c} ${i * step}%`).join(', ')})`;
+  }, []);
+
+  const renewableGradientCSS = useMemo(() => {
+    const colors = ['#8b4513', '#cccccc', '#27ae60'];
+    const step = 100 / (colors.length - 1);
+    return `linear-gradient(to right, ${colors.map((c, i) => `${c} ${i * step}%`).join(', ')})`;
+  }, []);
+
+  const reserveGradientCSS = useMemo(() => {
+    const colors = ['#ea580b', '#f39c12', '#27ae60'];
+    const step = 100 / (colors.length - 1);
+    return `linear-gradient(to right, ${colors.map((c, i) => `${c} ${i * step}%`).join(', ')})`;
+  }, []);
+
+  const reserveTicks = useMemo(() => [0, 5, 10, 20], []);
+  const renewableTicks = useMemo(() => [0, 50, 100], []);
+
+  // Build fill-color expression for given metric with hover/selection overrides
+  const buildFillColor = (metric) => {
+    let base;
+    switch (metric) {
+      case 'reserve': {
+        // Reserve margin in %, <5% critical (#ea580b), 5–10% warning (#f39c12), >10% healthy (#27ae60)
+        base = [
+          'interpolate', ['linear'],
+          ['coalesce', ['feature-state', 'reserveMargin'], -9999],
+          -9999, '#3a3a3a',
+          0, '#ea580b',
+          5, '#ea580b',
+          7.5, '#f39c12',
+          10, '#27ae60',
+          50, '#27ae60'
+        ];
+        break;
+      }
+      case 'carbon': {
+        // Carbon intensity gradient 0→1500 gCO₂eq/kWh (matches legend)
+        base = [
+          'interpolate', ['linear'],
+          ['coalesce', ['feature-state', 'carbonIntensity'], -1],
+          -1, '#3a3a3a',
+          ...carbonScale.stops
+        ];
+        break;
+      }
+      case 'price': {
+        // Price levels: #2e7cd6 (negative), #f0f0f0 (normal), #ea580b (>= $200/MWh)
+        base = [
+          'case',
+          ['<', ['coalesce', ['feature-state', 'priceMwh'], 999999], 0], '#2e7cd6',
+          ['<', ['coalesce', ['feature-state', 'priceMwh'], 999999], 200], '#f0f0f0',
+          ['>=', ['coalesce', ['feature-state', 'priceMwh'], 999999], 200], '#ea580b',
+          '#3a3a3a'
+        ];
+        break;
+      }
+      case 'renewable': {
+        // Renewable %: #8b4513 (0%) -> #cccccc (50%) -> #27ae60 (100%)
+        base = [
+          'interpolate', ['linear'],
+          ['coalesce', ['feature-state', 'renewable'], -1],
+          -1, '#3a3a3a',
+          0, '#8b4513',
+          50, '#cccccc',
+          100, '#27ae60'
+        ];
+        break;
+      }
+      default: {
+        base = [
+          'interpolate', ['linear'],
+          ['coalesce', ['feature-state', 'carbonIntensity'], -1],
+          -1, '#3a3a3a',
+          0, '#27ae60',
+          400, '#666666',
+          800, '#1a1a1a'
+        ];
+      }
+    }
+
+    return [
+      'case',
+      ['boolean', ['feature-state', 'hover'], false], '#ea580b',
+      ['boolean', ['feature-state', 'selected'], false], '#ea580b',
+      base
+    ];
+  };
+
   // Seed feature-state values for all countries + debug coverage
   const seedFeatureState = () => {
     if (!map.current) return;
@@ -159,6 +267,13 @@ export default function ElectricityMap({
         const intensity = info?.electricity?.emissions?.intensity;
         const renewablePct = info?.electricity?.renewable?.percentage;
         const productionTWh = info?.electricity?.production?.total;
+        const totalCap = info?.electricity?.capacity?.total;
+        const peakDemand = info?.electricity?.production?.peakDemand;
+        const reserveMargin = (typeof totalCap === 'number' && typeof peakDemand === 'number' && peakDemand > 0)
+          ? ((totalCap - peakDemand) / peakDemand) * 100
+          : null;
+        // TODO: Hook real-time price when available; keeping null by default for now.
+        const priceMwh = null;
         const name = info?.name;
 
         try {
@@ -168,6 +283,8 @@ export default function ElectricityMap({
               carbonIntensity: typeof intensity === 'number' ? intensity : null,
               renewable: typeof renewablePct === 'number' ? renewablePct : null,
               production: typeof productionTWh === 'number' ? productionTWh : null,
+              reserveMargin: typeof reserveMargin === 'number' ? reserveMargin : null,
+              priceMwh: typeof priceMwh === 'number' ? priceMwh : null,
               name: name || null
             }
           );
@@ -253,22 +370,7 @@ export default function ElectricityMap({
         type: 'fill',
         source: 'countries',
         paint: {
-          'fill-color': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false], '#ea580b',
-            ['boolean', ['feature-state', 'selected'], false], '#ea580b',
-            [
-              'interpolate',
-              ['linear'],
-              ['coalesce', ['feature-state', 'carbonIntensity'], -1],
-              -1, '#3a3a3a',
-              0, '#9be180',
-              150, '#9be180',
-              350, '#f0d264',
-              550, '#e58a3b',
-              800, '#b43f2d'
-            ]
-          ],
+          'fill-color': buildFillColor('carbon'),
           'fill-opacity': [
             'case',
             ['boolean', ['feature-state', 'hover'], false], 0.7,
@@ -494,7 +596,7 @@ export default function ElectricityMap({
             if (btn) {
               btn.onclick = (evt) => {
                 evt.preventDefault();
-                if (typeof onViewDetails === 'function') onViewDetails();
+                if (typeof onViewDetails === 'function') onViewDetails(slug);
                 if (!embedded) {
                   // Also open modal in non-embedded mode
                   setSelectedCountry(slug);
@@ -564,9 +666,9 @@ export default function ElectricityMap({
         const countryInfo = slug ? COUNTRY_DATA[slug] : null;
 
         if (countryInfo) {
-          // If embedded in country page, navigate to that country
+          // In embedded country view, open left sidebar panel with selected country; otherwise open modal
           if (embedded) {
-            router.push(`/${slug}`);
+            if (typeof onViewDetails === 'function' && slug) onViewDetails(slug);
           } else {
             // Show modal with country data
             setSelectedCountry(slug);
@@ -628,6 +730,17 @@ export default function ElectricityMap({
       }
     };
   }, [coordinates, country, embedded, isoToSlug, carbonPaintExpression, showHoverPanel, onViewDetails, router]);
+
+  // Update choropleth colors when active metric changes
+  useEffect(() => {
+    if (!map.current || !mapReady) return;
+    try {
+      map.current.setPaintProperty('countries-fill', 'fill-color', buildFillColor(activeMetric));
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to update fill-color for metric', activeMetric, e);
+    }
+  }, [activeMetric, mapReady]);
 
   // Update map when country changes (for navigation)
   useEffect(() => {
@@ -717,6 +830,68 @@ export default function ElectricityMap({
 
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0" style={{ width: '100%', height: '100%' }} />
+
+      {/* Metric toggle segmented control (top-right) */}
+      {mapReady && (
+        <div className="fixed right-4 z-50 flex" style={{ backgroundColor: '#1a1a1a', border: '1px solid #3a3a3a', top: embedded ? 60 : 16 }}>
+          <button
+            onClick={() => setActiveMetric('reserve')}
+            aria-pressed={activeMetric === 'reserve'}
+            className="text-[12px] font-semibold"
+            style={{
+              backgroundColor: activeMetric === 'reserve' ? '#ea580b' : '#1a1a1a',
+              color: activeMetric === 'reserve' ? '#0f0f0f' : '#eee',
+              padding: '6px 10px',
+              borderRight: '1px solid #3a3a3a',
+              borderRadius: 0
+            }}
+          >
+            Reserve
+          </button>
+          <button
+            onClick={() => setActiveMetric('carbon')}
+            aria-pressed={activeMetric === 'carbon'}
+            className="text-[12px] font-semibold"
+            style={{
+              backgroundColor: activeMetric === 'carbon' ? '#ea580b' : '#1a1a1a',
+              color: activeMetric === 'carbon' ? '#0f0f0f' : '#eee',
+              padding: '6px 10px',
+              borderRight: '1px solid #3a3a3a',
+              borderRadius: 0
+            }}
+          >
+            Carbon
+          </button>
+          <button
+            onClick={() => setActiveMetric('price')}
+            aria-pressed={activeMetric === 'price'}
+            className="text-[12px] font-semibold"
+            style={{
+              backgroundColor: activeMetric === 'price' ? '#ea580b' : '#1a1a1a',
+              color: activeMetric === 'price' ? '#0f0f0f' : '#eee',
+              padding: '6px 10px',
+              borderRight: '1px solid #3a3a3a',
+              borderRadius: 0
+            }}
+          >
+            Price
+          </button>
+          <button
+            onClick={() => setActiveMetric('renewable')}
+            aria-pressed={activeMetric === 'renewable'}
+            className="text-[12px] font-semibold"
+            style={{
+              backgroundColor: activeMetric === 'renewable' ? '#ea580b' : '#1a1a1a',
+              color: activeMetric === 'renewable' ? '#0f0f0f' : '#eee',
+              padding: '6px 10px',
+              border: 'none',
+              borderRadius: 0
+            }}
+          >
+            Renewable
+          </button>
+        </div>
+      )}
 
       {/* Data Modal (right-side panel on hover or click) */}
       {modalOpen && selectedData && (showHoverPanel || !embedded) && (
@@ -880,31 +1055,82 @@ export default function ElectricityMap({
         </div>
       )}
 
-      {/* Legend (only show if not embedded) */}
-      {!embedded && (
-        <div className="fixed bottom-4 left-4 bg-white rounded-xl shadow-lg p-4 z-40">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Carbon Intensity</p>
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#9be180] rounded mr-1"></div>
-              <span className="text-xs text-gray-600">&lt;150</span>
+      {/* Legends (metric-specific, visible in embedded and non-embedded) */}
+      <div
+        className="fixed z-40"
+        style={{
+          bottom: 16,
+          left: embedded ? 'auto' : 16,
+          right: embedded ? 16 : 'auto',
+          backgroundColor: '#1a1a1a',
+          color: '#eee',
+          border: '1px solid #3a3a3a',
+          padding: '12px 14px',
+          borderRadius: 0
+        }}
+      >
+        {activeMetric === 'carbon' && (
+          <>
+            <p className="text-sm font-semibold mb-2">Carbon intensity (gCO₂eq/kWh)</p>
+            <div style={{ width: 300 }}>
+              <div style={{ height: 10, background: carbonGradientCSS, border: '1px solid #3a3a3a' }} />
+              <div className="flex justify-between mt-2 text-xs" style={{ color: '#ccc' }}>
+                {carbonScale.ticks.map((t) => (
+                  <span key={t}>{t}</span>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#f0d264] rounded mr-1"></div>
-              <span className="text-xs text-gray-600">150-350</span>
+          </>
+        )}
+
+        {activeMetric === 'reserve' && (
+          <>
+            <p className="text-sm font-semibold mb-2">Reserve margin (%)</p>
+            <div style={{ width: 300 }}>
+              <div style={{ height: 10, background: reserveGradientCSS, border: '1px solid #3a3a3a' }} />
+              <div className="flex justify-between mt-2 text-xs" style={{ color: '#ccc' }}>
+                {reserveTicks.map((t) => (
+                  <span key={t}>{t}%</span>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#e58a3b] rounded mr-1"></div>
-              <span className="text-xs text-gray-600">350-550</span>
+          </>
+        )}
+
+        {activeMetric === 'renewable' && (
+          <>
+            <p className="text-sm font-semibold mb-2">Renewable (%)</p>
+            <div style={{ width: 300 }}>
+              <div style={{ height: 10, background: renewableGradientCSS, border: '1px solid #3a3a3a' }} />
+              <div className="flex justify-between mt-2 text-xs" style={{ color: '#ccc' }}>
+                {renewableTicks.map((t) => (
+                  <span key={t}>{t}%</span>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#b43f2d] rounded mr-1"></div>
-              <span className="text-xs text-gray-600">&gt;550</span>
+          </>
+        )}
+
+        {activeMetric === 'price' && (
+          <>
+            <p className="text-sm font-semibold mb-2">Price ($/MWh)</p>
+            <div className="flex items-center gap-4 text-xs" style={{ color: '#ccc' }}>
+              <div className="flex items-center gap-2">
+                <span style={{ width: 14, height: 14, backgroundColor: '#2e7cd6', display: 'inline-block', border: '1px solid #3a3a3a' }} />
+                <span>Negative</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ width: 14, height: 14, backgroundColor: '#f0f0f0', display: 'inline-block', border: '1px solid #3a3a3a' }} />
+                <span>0–200</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span style={{ width: 14, height: 14, backgroundColor: '#ea580b', display: 'inline-block', border: '1px solid #3a3a3a' }} />
+                <span>≥200</span>
+              </div>
             </div>
-            <span className="text-xs text-gray-500 ml-2">gCO₂/kWh</span>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
 
       {/* Quick Stats Panel (only for embedded view) */}
       {embedded && (
