@@ -3,11 +3,65 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import maplibregl from 'maplibre-gl';
+import { Map, NavigationControl, Popup } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 // Import country data
 import { COUNTRY_DATA } from '@/data/countries';
+// ISO3 -> ISO2 fallback map for common countries in COUNTRY_DATA
+const ISO3_TO_ISO2 = {
+  DEU: 'DE',
+  FRA: 'FR',
+  USA: 'US',
+  RUS: 'RU',
+  CHN: 'CN',
+  IND: 'IN',
+  JPN: 'JP',
+  BRA: 'BR',
+  CAN: 'CA',
+  AUS: 'AU',
+  AZE: 'AZ',
+  GBR: 'GB'
+};
+
+function deriveISO2(props = {}) {
+  const p = props || {};
+  // Prefer 2-letter codes if present (include Natural Earth keys)
+  const iso2 =
+    p['ISO3166-1-Alpha-2'] ||
+    p.ISO_A2 || p.iso_a2 || p.isoA2 || p.ISO2 || p.iso2 ||
+    p.cca2 || p.CCA2 || p.iso_2 || p.ISO_2;
+  if (iso2 && typeof iso2 === 'string') {
+    return String(iso2).slice(0, 2).toUpperCase();
+  }
+  // Fallback: map 3-letter codes to ISO2 (include Natural Earth keys)
+  const iso3 =
+    p['ISO3166-1-Alpha-3'] ||
+    p.ISO_A3 || p.ADM0_A3 || p.iso_a3 || p.isoA3 ||
+    p.cca3 || p.CCA3 || p.iso_3 || p.ISO_3;
+  const key = iso3 ? String(iso3).toUpperCase() : undefined;
+  if (key && ISO3_TO_ISO2[key]) return ISO3_TO_ISO2[key];
+  return undefined;
+}
+
+function normalizeName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+// Name -> slug map as an additional fallback
+const nameToSlug = (() => {
+  const map = {};
+  try {
+    Object.entries(COUNTRY_DATA || {}).forEach(([slug, info]) => {
+      if (info?.name) map[normalizeName(info.name)] = slug;
+    });
+  } catch {}
+  return map;
+})();
 
 export default function ElectricityMap({
   country,
@@ -37,6 +91,8 @@ export default function ElectricityMap({
       Object.entries(COUNTRY_DATA || {}).forEach(([slug, info]) => {
         if (info?.code) m[String(info.code).toUpperCase()] = slug;
       });
+      // alias often used in some datasets
+      if (!m.UK && m.GB) m.UK = m.GB;
     } catch {}
     return m;
   }, []);
@@ -75,27 +131,64 @@ export default function ElectricityMap({
     return 'red';
   };
 
-  // Seed feature-state values for all countries
+  // Seed feature-state values for all countries + debug coverage
   const seedFeatureState = () => {
     if (!map.current) return;
     try {
+      // Collect existing feature ids in source to validate coverage
+      let existingIds = new Set();
+      try {
+        const feats = map.current.querySourceFeatures('countries') || [];
+        for (const f of feats) {
+          const id = (f && (f.id ?? f.properties?.id)) ? String(f.id ?? f.properties.id).toUpperCase() : undefined;
+          if (id) existingIds.add(id);
+        }
+      } catch {
+        // querySourceFeatures may throw before first render; ignore
+      }
+
+      let seeded = 0;
+      let attempted = 0;
+      const missing = [];
+
       Object.entries(COUNTRY_DATA || {}).forEach(([slug, info]) => {
-        const iso2 = info?.code;
+        const iso2 = info?.code ? String(info.code).toUpperCase() : null;
         if (!iso2) return;
+        attempted++;
+
         const intensity = info?.electricity?.emissions?.intensity;
         const renewablePct = info?.electricity?.renewable?.percentage;
         const productionTWh = info?.electricity?.production?.total;
         const name = info?.name;
 
-        map.current.setFeatureState(
-          { source: 'countries', id: iso2 },
-          {
-            carbonIntensity: typeof intensity === 'number' ? intensity : null,
-            renewable: typeof renewablePct === 'number' ? renewablePct : null,
-            production: typeof productionTWh === 'number' ? productionTWh : null,
-            name: name || null
-          }
-        );
+        try {
+          map.current.setFeatureState(
+            { source: 'countries', id: iso2 },
+            {
+              carbonIntensity: typeof intensity === 'number' ? intensity : null,
+              renewable: typeof renewablePct === 'number' ? renewablePct : null,
+              production: typeof productionTWh === 'number' ? productionTWh : null,
+              name: name || null
+            }
+          );
+          seeded++;
+        } catch {
+          missing.push(iso2);
+        }
+      });
+
+      // eslint-disable-next-line no-console
+      console.info('Feature-state seeding summary', {
+        attempted,
+        seeded,
+        sampleMissing: missing.slice(0, 10),
+        sourceFeatureCount: existingIds.size,
+        exampleCheck: ['DE','FR','IN','US','GB','BR','RU','CN','CA','AU'].map(k => ({
+          id: k,
+          state: (() => {
+            try { return map.current.getFeatureState({ source: 'countries', id: k }); } catch { return null; }
+          })()
+        }))
       });
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -108,7 +201,20 @@ export default function ElectricityMap({
     if (map.current || !mapContainer.current) return;
 
     // If WebGL is not supported, render a static fallback and skip Map init
-    if (!maplibregl.supported()) {
+    const __isWebGLSupported = (() => {
+      try {
+        if (typeof window === 'undefined') return false;
+        const canvas = document.createElement('canvas');
+        const gl =
+          canvas.getContext('webgl2') ||
+          canvas.getContext('webgl') ||
+          canvas.getContext('experimental-webgl');
+        return !!gl;
+      } catch {
+        return false;
+      }
+    })();
+    if (!__isWebGLSupported) {
       setNoWebGL(true);
       setIsLoading(false);
       return;
@@ -116,7 +222,7 @@ export default function ElectricityMap({
 
     const initialView = coordinates || { center: [10, 30], zoom: 2 };
 
-    map.current = new maplibregl.Map({
+    map.current = new Map({
       container: mapContainer.current,
       style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: initialView.center,
@@ -127,7 +233,7 @@ export default function ElectricityMap({
     });
 
     // Add navigation controls
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.current.addControl(new NavigationControl(), 'top-right');
 
     map.current.on('load', () => {
       setIsLoading(false);
@@ -137,8 +243,8 @@ export default function ElectricityMap({
       // Use promoteId so feature-state can target by ISO_A2 directly
       map.current.addSource('countries', {
         type: 'geojson',
-        data: 'https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/110m/cultural/ne_110m_admin_0_countries.geojson',
-        promoteId: 'ISO_A2'
+        data: { type: 'FeatureCollection', features: [] },
+        promoteId: 'id'
       });
 
       // Add fill layer with expression-based styling
@@ -151,13 +257,23 @@ export default function ElectricityMap({
             'case',
             ['boolean', ['feature-state', 'hover'], false], '#ea580b',
             ['boolean', ['feature-state', 'selected'], false], '#ea580b',
-            carbonPaintExpression
+            [
+              'interpolate',
+              ['linear'],
+              ['coalesce', ['feature-state', 'carbonIntensity'], -1],
+              -1, '#3a3a3a',
+              0, '#9be180',
+              150, '#9be180',
+              350, '#f0d264',
+              550, '#e58a3b',
+              800, '#b43f2d'
+            ]
           ],
           'fill-opacity': [
             'case',
             ['boolean', ['feature-state', 'hover'], false], 0.7,
             ['boolean', ['feature-state', 'selected'], false], 0.5,
-            0.35
+            0.6
           ]
         }
       });
@@ -190,8 +306,81 @@ export default function ElectricityMap({
         }
       });
 
-      // Seed feature-state; MapLibre re-colors automatically via expression on updates
-      seedFeatureState();
+      // Ensure our layers sit on top of the basemap
+      try {
+        map.current.moveLayer('countries-outline');
+        map.current.moveLayer('countries-fill');
+      } catch {}
+ 
+      // Ensure seeding occurs once when the 'countries' source finishes loading
+      let __seededOnce = false;
+      const __onSourceData = (e) => {
+        try {
+          if (
+            e.sourceId === 'countries' &&
+            map.current &&
+            typeof map.current.isSourceLoaded === 'function' &&
+            map.current.isSourceLoaded('countries') &&
+            !__seededOnce
+          ) {
+            __seededOnce = true;
+            seedFeatureState();
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('seedFeatureState failed (sourcedata)', err);
+        }
+      };
+      map.current.on('sourcedata', __onSourceData);
+ 
+      // Load and normalize country GeoJSON, then seed feature-state
+      fetch('/countries.geojson')
+        .then(r => r.json())
+        .then(geo => {
+          const normalized = {
+            type: 'FeatureCollection',
+            features: (geo?.features || []).map(f => {
+              const p = f.properties || {};
+              let iso2 = deriveISO2(p);
+              if (!iso2) {
+                const nameCandidate = normalizeName(
+                  p.NAME_EN || p.name_en ||
+                  p.ADMIN || p.admin ||
+                  p.NAME || p.name ||
+                  p.SOVEREIGNT || p.sovereignt
+                );
+                const slugGuess = nameCandidate ? nameToSlug[nameCandidate] : undefined;
+                const codeFromSlug = slugGuess ? COUNTRY_DATA[slugGuess]?.code : undefined;
+                if (codeFromSlug) iso2 = String(codeFromSlug).toUpperCase();
+              }
+              const id = iso2 || undefined;
+              // Ensure the promoted property exists so feature-state targets match by promoteId: 'id'
+              return { ...f, id, properties: { ...p, id } };
+            })
+          };
+          const src = map.current && map.current.getSource('countries');
+          if (src && typeof src.setData === 'function') {
+            src.setData(normalized);
+          }
+          // Now that features have ids, seed per-country feature-state after style/sources are ready
+          const seed = () => {
+            try {
+              seedFeatureState();
+            } catch (e) {
+              // eslint-disable-next-line no-console
+              console.warn('seedFeatureState failed (post-setData)', e);
+            }
+          };
+          if (map.current && typeof map.current.isStyleLoaded === 'function' && map.current.isStyleLoaded()) {
+            seed();
+          } else if (map.current) {
+            map.current.once('idle', seed);
+          }
+        })
+        .catch((e) => {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to load countries geojson', e);
+        });
 
       // If country is specified, highlight it and open modal (non-embedded)
       if (country && !embedded) {
@@ -209,7 +398,20 @@ export default function ElectricityMap({
         if (!e.features || e.features.length === 0) return;
 
         const feature = e.features[0];
-        const iso2 = feature.properties?.ISO_A2;
+        const p = feature.properties || {};
+        let iso2 = (feature.id || deriveISO2(p) || p.ISO_A2 || p.iso_a2 || p.cca2 || p.CCA2);
+        iso2 = iso2 ? String(iso2).toUpperCase() : undefined;
+        if (!iso2) {
+          const nameCandidate = normalizeName(
+            p.NAME_EN || p.name_en ||
+            p.ADMIN || p.admin ||
+            p.NAME || p.name ||
+            p.SOVEREIGNT || p.sovereignt
+          );
+          const slugGuess = nameCandidate ? nameToSlug[nameCandidate] : undefined;
+          const codeFromSlug = slugGuess ? COUNTRY_DATA[slugGuess]?.code : undefined;
+          if (codeFromSlug) iso2 = String(codeFromSlug).toUpperCase();
+        }
         if (!iso2) return;
 
         // Remove previous hover/selection state
@@ -229,9 +431,25 @@ export default function ElectricityMap({
         );
 
         // Resolve country and show a popup near cursor
-        const slug = isoToSlug[iso2];
+        const props = feature.properties || {};
+        let slug = isoToSlug[iso2];
+        if (!slug) {
+          const nameCandidate = normalizeName(
+            props.NAME_EN || props.name_en ||
+            props.ADMIN || props.admin ||
+            props.NAME || props.name ||
+            props.SOVEREIGNT || props.sovereignt
+          );
+          slug = nameCandidate ? nameToSlug[nameCandidate] : null;
+        }
         const countryInfo = slug ? COUNTRY_DATA[slug] : null;
-        const countryName = countryInfo?.name || feature.properties?.NAME_EN || feature.properties?.ADMIN || iso2;
+        const countryName =
+          countryInfo?.name ||
+          props.NAME_EN || props.name_en ||
+          props.ADMIN || props.admin ||
+          props.NAME || props.name ||
+          props.SOVEREIGNT || props.sovereignt ||
+          iso2;
 
         if (countryInfo) {
           const eData = countryInfo.electricity || {};
@@ -258,7 +476,7 @@ export default function ElectricityMap({
           `;
 
           if (!hoverPopupRef.current) {
-            hoverPopupRef.current = new maplibregl.Popup({
+            hoverPopupRef.current = new Popup({
               closeButton: false,
               closeOnClick: false,
               className: 'saral-map-popup'
@@ -319,8 +537,30 @@ export default function ElectricityMap({
       map.current.on('click', 'countries-fill', (e) => {
         if (!e.features || e.features.length === 0) return;
         const feature = e.features[0];
-        const iso2 = feature.properties?.ISO_A2;
-        const slug = iso2 ? isoToSlug[iso2] : null;
+        const p = feature.properties || {};
+        let iso2 = (feature.id || deriveISO2(p) || p.ISO_A2 || p.iso_a2 || p.cca2 || p.CCA2);
+        iso2 = iso2 ? String(iso2).toUpperCase() : undefined;
+        if (!iso2) {
+          const nameCandidate = normalizeName(
+            p.NAME_EN || p.name_en ||
+            p.ADMIN || p.admin ||
+            p.NAME || p.name ||
+            p.SOVEREIGNT || p.sovereignt
+          );
+          const slugGuess = nameCandidate ? nameToSlug[nameCandidate] : undefined;
+          const codeFromSlug = slugGuess ? COUNTRY_DATA[slugGuess]?.code : undefined;
+          if (codeFromSlug) iso2 = String(codeFromSlug).toUpperCase();
+        }
+        let slug = iso2 ? isoToSlug[iso2] : null;
+        if (!slug) {
+          const nameCandidate = normalizeName(
+            p.NAME_EN || p.name_en ||
+            p.ADMIN || p.admin ||
+            p.NAME || p.name ||
+            p.SOVEREIGNT || p.sovereignt
+          );
+          slug = nameCandidate ? nameToSlug[nameCandidate] : null;
+        }
         const countryInfo = slug ? COUNTRY_DATA[slug] : null;
 
         if (countryInfo) {
@@ -343,7 +583,33 @@ export default function ElectricityMap({
             }
           }
         } else {
-          const countryName = feature.properties?.NAME_EN || feature.properties?.ADMIN || iso2 || 'This country';
+          const props = feature.properties || {};
+          const countryName =
+            props.NAME_EN || props.name_en ||
+            props.ADMIN || props.admin ||
+            props.NAME || props.name ||
+            props.SOVEREIGNT || props.sovereignt ||
+            iso2 || 'This country';
+
+          // Debug mapping issues to identify why a supported country didn't resolve
+          // This will help verify iso2 and slug inference at runtime
+          // eslint-disable-next-line no-console
+          console.warn('Map country mapping miss', {
+            iso2,
+            props,
+            nameCandidate: (props.NAME_EN || props.name_en || props.ADMIN || props.admin || props.NAME || props.name || props.SOVEREIGNT || props.sovereignt || '').toString(),
+            derivedSlug: (props.NAME_EN || props.name_en || props.ADMIN || props.admin || props.NAME || props.name || props.SOVEREIGNT || props.sovereignt)
+              ? (function () {
+                  const n = (props.NAME_EN || props.name_en || props.ADMIN || props.admin || props.NAME || props.name || props.SOVEREIGNT || props.sovereignt || '').toString()
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9]+/g, ' ')
+                    .trim();
+                  return n;
+                })()
+              : null
+          });
+
           // eslint-disable-next-line no-alert
           alert(`Data not available for ${countryName} yet.`);
         }
@@ -388,8 +654,26 @@ export default function ElectricityMap({
 
   // Example: if some external updates arrive, re-seed states to auto-recolor via expressions
   useEffect(() => {
-    if (map.current && mapReady) {
-      seedFeatureState();
+    if (!map.current || !mapReady) return;
+    const safeSeed = () => {
+      try {
+        seedFeatureState();
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('seedFeatureState failed (mapReady effect)', e);
+      }
+    };
+    // If the countries source exists and is loaded, seed immediately; otherwise wait for idle
+    try {
+      const hasIsLoaded = typeof map.current.isSourceLoaded === 'function';
+      const sourceExists = !!map.current.getSource('countries');
+      if (sourceExists && hasIsLoaded && map.current.isSourceLoaded('countries')) {
+        safeSeed();
+      } else {
+        map.current.once('idle', safeSeed);
+      }
+    } catch {
+      map.current.once('idle', safeSeed);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapReady, initialData]);
