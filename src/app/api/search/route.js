@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAllEnergyAnalysisPosts } from '@/lib/contentful';
 import { getAllInsights } from '@/lib/markdown';
 import { getAllPosts } from '@/lib/posts';
+import { COUNTRY_DATA } from '@/data/countries';
 import Fuse from 'fuse.js';
 
 function buildResultsWithHighlights(items, query) {
@@ -100,7 +101,21 @@ export async function GET(request) {
 
     const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
+    // Build country search items
+    const countries = Object.entries(COUNTRY_DATA).map(([slug, country]) => ({
+      type: 'country',
+      title: country.name,
+      excerpt: `${country.flag} ${country.region} • ${country.electricity.production.total} TWh electricity production`,
+      tags: [country.region, country.subregion, 'electricity', 'energy'],
+      date: new Date().toISOString(),
+      href: `/${slug}`,
+      countrySlug: slug,
+      content: `${country.name} ${country.region} ${country.subregion} electricity production renewable energy carbon emissions`,
+    }));
+
     const items = [
+      // Countries (high priority)
+      ...countries,
       // Contentful blog posts
       ...posts.map((p) => ({
         type: 'blog',

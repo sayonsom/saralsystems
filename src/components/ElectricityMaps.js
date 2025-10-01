@@ -1,7 +1,7 @@
 // src/components/ElectricityMap.js
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Map, NavigationControl, Popup } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -63,14 +63,14 @@ const nameToSlug = (() => {
   return map;
 })();
 
-export default function ElectricityMap({
+const ElectricityMap = forwardRef(function ElectricityMap({
   country,
   initialData,
   coordinates,
   embedded = false,
   showHoverPanel = true,
   onViewDetails
-}) {
+}, ref) {
   const router = useRouter();
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -78,6 +78,7 @@ export default function ElectricityMap({
   const hoveredIsoRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(country);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
@@ -313,6 +314,52 @@ export default function ElectricityMap({
     }
   };
 
+  // Navigate to a country with zoom-out-then-zoom-in animation
+  const navigateToCountry = (countrySlug) => {
+    if (!map.current || !mapReady) return;
+    
+    const countryInfo = COUNTRY_DATA[countrySlug];
+    if (!countryInfo || !countryInfo.coordinates) return;
+
+    const { center, zoom } = countryInfo.coordinates;
+    
+    // First zoom out
+    map.current.flyTo({
+      zoom: 2,
+      duration: 800,
+      essential: true
+    });
+
+    // Then zoom to the target country after zoom-out completes
+    setTimeout(() => {
+      if (map.current) {
+        map.current.flyTo({
+          center,
+          zoom,
+          duration: 1500,
+          essential: true
+        });
+      }
+    }, 900);
+
+    // Update selected country for non-embedded views
+    if (!embedded) {
+      setTimeout(() => {
+        const data = COUNTRY_DATA[countrySlug];
+        if (data) {
+          setSelectedData(data.electricity);
+          setSelectedCountry(countrySlug);
+          setModalOpen(true);
+        }
+      }, 2400);
+    }
+  };
+
+  // Expose navigateToCountry method via ref
+  useImperativeHandle(ref, () => ({
+    navigateToCountry
+  }));
+
   // Initialize map (Strict Mode safe: only when container exists and map not created)
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -337,7 +384,8 @@ export default function ElectricityMap({
       return;
     }
 
-    const initialView = coordinates || { center: [10, 30], zoom: 2 };
+    // Initial view: Show Asia/Europe/North America region
+    const initialView = coordinates || { center: [60, 35], zoom: 2.5 };
 
     map.current = new Map({
       container: mapContainer.current,
@@ -353,7 +401,6 @@ export default function ElectricityMap({
     map.current.addControl(new NavigationControl(), 'top-right');
 
     map.current.on('load', () => {
-      setIsLoading(false);
       setMapReady(true);
 
       // Add country boundaries from Natural Earth (public GeoJSON)
@@ -478,10 +525,15 @@ export default function ElectricityMap({
           } else if (map.current) {
             map.current.once('idle', seed);
           }
+          // Mark data as loaded after seeding
+          setDataLoaded(true);
+          setIsLoading(false);
         })
         .catch((e) => {
           // eslint-disable-next-line no-console
           console.warn('Failed to load countries geojson', e);
+          setDataLoaded(true);
+          setIsLoading(false);
         });
 
       // If country is specified, highlight it and open modal (non-embedded)
@@ -670,19 +722,8 @@ export default function ElectricityMap({
           if (embedded) {
             if (typeof onViewDetails === 'function' && slug) onViewDetails(slug);
           } else {
-            // Show modal with country data
-            setSelectedCountry(slug);
-            setSelectedData(countryInfo.electricity);
-            setModalOpen(true);
-
-            // Fly to country if coordinates available
-            if (countryInfo.coordinates?.center && countryInfo.coordinates?.zoom) {
-              map.current.flyTo({
-                center: countryInfo.coordinates.center,
-                zoom: countryInfo.coordinates.zoom,
-                duration: 1500
-              });
-            }
+            // Use the zoom-out-then-zoom-in animation for country navigation
+            navigateToCountry(slug);
           }
         } else {
           const props = feature.properties || {};
@@ -806,12 +847,12 @@ export default function ElectricityMap({
 
   return (
     <div className={`relative w-full ${embedded ? 'h-full' : 'h-screen'}`}>
-      {/* Loading overlay */}
-      {isLoading && (
+      {/* Loading overlay - shown until map and data are ready */}
+      {(isLoading || !dataLoaded) && (
         <div className="absolute inset-0 bg-gray-900/90 flex items-center justify-center z-50">
           <div className="text-white text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-            <p className="mt-4">Loading electricity map...</p>
+            <p className="mt-4 text-lg font-semibold">Loading...</p>
           </div>
         </div>
       )}
@@ -828,8 +869,16 @@ export default function ElectricityMap({
         </div>
       )}
 
-      {/* Map container */}
-      <div ref={mapContainer} className="absolute inset-0" style={{ width: '100%', height: '100%' }} />
+      {/* Map container - hidden until data is loaded */}
+      <div
+        ref={mapContainer}
+        className="absolute inset-0"
+        style={{
+          width: '100%',
+          height: '100%',
+          visibility: dataLoaded ? 'visible' : 'hidden'
+        }}
+      />
 
       {/* Metric toggle segmented control (top-right) */}
       {mapReady && (
@@ -1178,4 +1227,6 @@ export default function ElectricityMap({
       `}</style>
     </div>
   );
-}
+});
+
+export default ElectricityMap;

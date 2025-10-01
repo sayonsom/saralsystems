@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getConsentAccepted, getJsonCookie, setJsonCookie } from '@/lib/cookies';
+import { useRouter } from 'next/navigation';
 
-export default function SearchModal({ isOpen, onClose, initialQuery = '' }) {
+export default function SearchModal({ isOpen, onClose, initialQuery = '', onCountrySelect }) {
+  const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -123,7 +125,24 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }) {
           )}
 
           {!loading && !error && results.map((r, i) => (
-            <a key={i} href={r.href} className="block p-4 hover:bg-gray-50">
+            <a
+              key={i}
+              href={r.href}
+              className="block p-4 hover:bg-gray-50"
+              onClick={(e) => {
+                if (r.type === 'country' && r.countrySlug) {
+                  e.preventDefault();
+                  if (typeof onCountrySelect === 'function') {
+                    onCountrySelect(r.countrySlug);
+                    onClose?.();
+                  } else {
+                    // Fallback: navigate to country page
+                    router.push(r.href);
+                    onClose?.();
+                  }
+                }
+              }}
+            >
               <div className="text-[10px] uppercase text-gray-500 mb-1">{r.type}</div>
               <div className="text-base font-semibold leading-snug" dangerouslySetInnerHTML={{ __html: r.highlightedTitle || escapeHtml(r.title) }} />
               {r.snippet ? (

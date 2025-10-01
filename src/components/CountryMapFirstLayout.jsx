@@ -1,14 +1,16 @@
 // src/components/CountryMapFirstLayout.jsx
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import ElectricityMap from '@/components/ElectricityMaps';
 import CountryTimeSeries from '@/components/CountryTimeSeries';
 import { COUNTRY_DATA } from '@/data/countries';
+import Header from '@/components/Header';
 
 export default function CountryMapFirstLayout({ countryCode, country }) {
   const [open, setOpen] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState(null);
+  const mapRef = useRef(null);
   const panelCountry = useMemo(() => {
     if (!selectedSlug) return null;
     return COUNTRY_DATA[selectedSlug] || null;
@@ -75,23 +77,41 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
     return { carbonSeries, mixSeries72 };
   }, [selectedSlug, panelCountry, mix]);
 
+  // Handle country selection from search
+  const handleCountrySelect = (countrySlug) => {
+    // Navigate the map to the selected country
+    if (mapRef.current && mapRef.current.navigateToCountry) {
+      mapRef.current.navigateToCountry(countrySlug);
+    }
+    // Update panel data
+    if (COUNTRY_DATA[countrySlug]) {
+      setSelectedSlug(countrySlug);
+      setOpen(true);
+    }
+  };
+
   return (
-    <div className="relative w-full saral-map-first" style={{ backgroundColor: '#0f0f0f', color: '#eee', height: 'calc(100vh - 48px)', marginTop: 48 }}>
-      <div className="absolute inset-0">
-        <ElectricityMap
-          country={countryCode}
-          initialData={country?.electricity}
-          coordinates={country?.coordinates}
-          embedded={true}
-          showHoverPanel={false}
-          onViewDetails={(slug) => {
-            if (slug && COUNTRY_DATA[slug]) {
-              setSelectedSlug(slug);
-              setOpen(true);
-            }
-          }}
-        />
-      </div>
+    <>
+      {/* Header with search integration */}
+      <Header pageTitle="Global Energy Monitor" onCountrySelect={handleCountrySelect} />
+      
+      <div className="relative w-full saral-map-first" style={{ backgroundColor: '#0f0f0f', color: '#eee', height: 'calc(100vh - 48px)', marginTop: 48 }}>
+        <div className="absolute inset-0">
+          <ElectricityMap
+            ref={mapRef}
+            country={countryCode}
+            initialData={country?.electricity}
+            coordinates={country?.coordinates}
+            embedded={true}
+            showHoverPanel={false}
+            onViewDetails={(slug) => {
+              if (slug && COUNTRY_DATA[slug]) {
+                setSelectedSlug(slug);
+                setOpen(true);
+              }
+            }}
+          />
+        </div>
 
 
       {/* Left Sidebar (only when a selected country with data is available) */}
@@ -189,12 +209,13 @@ export default function CountryMapFirstLayout({ countryCode, country }) {
         </div>
       </aside>
 
-      {/* CSS overrides to enforce design */}
-      <style jsx global>{`
-        .saral-map-first * { border-radius: 0 !important; }
-        .saral-map-first [class*="bottom-4"][class*="right-4"][class*="bg-white"] { display: none !important; }
-      `}</style>
-    </div>
+        {/* CSS overrides to enforce design */}
+        <style jsx global>{`
+          .saral-map-first * { border-radius: 0 !important; }
+          .saral-map-first [class*="bottom-4"][class*="right-4"][class*="bg-white"] { display: none !important; }
+        `}</style>
+      </div>
+    </>
   );
 }
 

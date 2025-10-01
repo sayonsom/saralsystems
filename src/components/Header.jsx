@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import SearchModal from "./SearchModal";
 import { usePathname } from "next/navigation";
 
-export default function Header({ pageTitle }) {
+export default function Header({ pageTitle, onCountrySelect }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -457,7 +457,12 @@ export default function Header({ pageTitle }) {
       />
 
       {/* Search Modal */}
-      <SearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} initialQuery={searchQuery} />
+      <SearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+        initialQuery={searchQuery}
+        onCountrySelect={onCountrySelect}
+      />
     </header>
   );
 }
