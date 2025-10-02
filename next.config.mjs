@@ -14,6 +14,12 @@ const nextConfig = {
         port: '',
         pathname: '/dti7egpsg/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'unpkg.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   async redirects() {
